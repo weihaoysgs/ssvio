@@ -39,4 +39,9 @@ void PangolinWindow::PlotAngleValue(float yaw, float pitch, float roll)
 {
   pangolin_win_impl_->SetEulerAngle(yaw, pitch, roll);
 }
+
+void PangolinWindow::ShowVisualOdomResult(const Sophus::SE3d &pose)
+{
+  pangolin_win_impl_->UpdateVisualOdometerState(pose);
+}
 } // namespace ui

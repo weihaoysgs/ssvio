@@ -13,6 +13,8 @@
 #include "atomic"
 #include "unistd.h"
 
+#include "ui/trajectory_ui.hpp"
+
 namespace ui {
 
 class PangolinWindowImpl
@@ -27,32 +29,34 @@ class PangolinWindowImpl
   PangolinWindowImpl(PangolinWindowImpl &&) = delete;
   PangolinWindowImpl &operator=(PangolinWindowImpl &&) = delete;
 
-  /// 初始化，创建各种点云、小车实体
+  /// Init pangolin
   bool InitPangolin();
 
-  /// 注销
   bool DeInit();
   void SetDefaultViewImage();
-  /// 渲染所有信息
+  /// Render All
   void RenderAll();
   void CreateDisplayLayout();
   void SetViewImage(const cv::Mat &img_left, const cv::Mat &img_right = cv::Mat());
   bool RenderViewImage();
   bool RenderPlotterDataLog();
   void SetEulerAngle(float yaw, float pitch, float roll);
+  void UpdateVisualOdometerState(const Sophus::SE3d &pose);
 
   public:
   std::thread render_thread_;
   std::atomic<bool> exit_flag_ = false;
+  std::atomic<bool> vo_result_need_update_ = false;
   std::mutex update_img_mutex_;
   std::mutex update_euler_angle_mutex_;
+  std::mutex update_vo_state_;
 
   void Render();
 
   private:
   /// camera
   pangolin::OpenGlRenderState s_cam_main_;
-  /// window layout 相关
+  /// window layout 
   int win_width_ = 1920;
   int win_height_ = 1080;
   static constexpr float cam_focus_ = 5000;
@@ -65,7 +69,7 @@ class PangolinWindowImpl
   const std::string dis_3d_main_name_ = "Cam 3D Main"; /// main
   const std::string dis_plot_name_ = "Plot";
   const std::string dis_imgs_name = "Images";
-  bool following_loc_ = true; /// 相机是否追踪定位结果
+  bool following_loc_ = true; /// follow the camera
 
   pangolin::DataLog log_yaw_angle_;
   std::unique_ptr<pangolin::Plotter> plotter_yam_angle_ = nullptr;
@@ -77,6 +81,9 @@ class PangolinWindowImpl
 
   std::unique_ptr<pangolin::GlTexture> gl_texture_img_left_ = nullptr;
   std::unique_ptr<pangolin::GlTexture> gl_texture_img_right_ = nullptr;
+
+  std::unique_ptr<ui::TrajectoryUI> no_loop_traj_ = nullptr;
+  std::unique_ptr<ui::TrajectoryUI> loop_traj_ = nullptr;
 
   cv::Mat right_img_;
   cv::Mat left_img_;

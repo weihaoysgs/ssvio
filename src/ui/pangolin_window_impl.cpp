@@ -13,17 +13,14 @@ bool PangolinWindowImpl::InitPangolin()
   /// 3D mouse handler requires depth testing to be enabled
   glEnable(GL_DEPTH_TEST);
 
-  // opengl buffer
-  //  AllocateBuffer();
-
   // unset the current context from the main thread
   pangolin::GetBoundWindow()->RemoveCurrent();
 
-  // 轨迹
-  //  traj_lidarloc_ui_.reset(new ui::UiTrajectory(Eigen::Vector3f(0.0, 1.0, 0.0)));     // 红色
-  //  traj_gps_ui_.reset(new ui::UiTrajectory(Eigen::Vector3f(1.0, 1.0, 51.0 / 255.0))); // 黄色
-  //
-  //  // current_scan_.reset(new PointCloudType);
+  /// create trajectory
+  no_loop_traj_ = std::make_unique<ui::TrajectoryUI>(Eigen::Vector3f(0.0, 1.0, 0.0)); /// red color
+  loop_traj_ = std::make_unique<ui::TrajectoryUI>(Eigen::Vector3f(1.0, 1.0, 51.0 / 255.0)); /// yellow
+
+  //  current_scan_.reset(new PointCloudType);
   //  current_scan_ui_.reset(new ui::UiCloud);
 
   /// data log
@@ -207,6 +204,12 @@ void PangolinWindowImpl::RenderAll()
 {
   RenderViewImage();
   RenderPlotterDataLog();
+  {
+    /// when render image, we render a different view which not render point
+    pangolin::Display(dis_3d_main_name_).Activate(s_cam_main_);
+    std::unique_lock<std::mutex> lck(update_vo_state_);
+    no_loop_traj_->Render();
+  }
 }
 
 void PangolinWindowImpl::SetEulerAngle(float yaw, float pitch, float roll)
@@ -223,6 +226,12 @@ bool PangolinWindowImpl::RenderPlotterDataLog()
   log_yaw_angle_.Log(
       std::get<0>(euler_angle_), std::get<1>(euler_angle_), std::get<2>(euler_angle_));
   return true;
+}
+
+void PangolinWindowImpl::UpdateVisualOdometerState(const Sophus::SE3d &pose)
+{
+  std::unique_lock<std::mutex> lck(update_vo_state_);
+  no_loop_traj_->AddTrajectoryPose(pose);
 }
 
 } // namespace ui

@@ -24,6 +24,7 @@ class PangolinWindow
   void Quit() const;
   void ViewImage(const cv::Mat &img_left, const cv::Mat &img_right);
   void PlotAngleValue(float yaw, float pitch, float roll);
+  void ShowVisualOdomResult(const Sophus::SE3d &pose);
 
   private:
   std::unique_ptr<ui::PangolinWindowImpl> pangolin_win_impl_;
