@@ -4,9 +4,11 @@
 
 #ifndef SSVIO_FRONTEND_HPP
 #define SSVIO_FRONTEND_HPP
+
 #include "ssvio/camera.hpp"
 #include "opencv2/opencv.hpp"
 #include "ssvio/orbextractor.hpp"
+#include "ssvio/frame.hpp"
 
 namespace ssvio {
 class FrontEnd

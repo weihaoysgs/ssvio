@@ -21,6 +21,7 @@ void FrontEnd::DetectFeatures()
 bool FrontEnd::GrabSteroImage(const cv::Mat &left_img, const cv::Mat &right_img,
                               const double timestamp)
 {
+
   cv::imshow("left", left_img);
   cv::Mat mask(left_img.size(), CV_8UC1, 255);
 
