@@ -1,13 +1,12 @@
 //
 // Created by weihao on 23-8-7.
 //
-#include "filesystem"
-#include "fstream"
 #include "gflags/gflags.h"
 #include "glog/logging.h"
 #include "iostream"
 #include "ui/pangolin_window.hpp"
 #include "unistd.h"
+#include "common/read_kitii_dataset.hpp"
 
 DEFINE_double(angular_velocity, 10.0, "角速度（角度）制");
 DEFINE_double(linear_velocity, 5.0, "车辆前进线速度 m/s");
@@ -17,11 +16,6 @@ DEFINE_string(kitti_dataset_path,
               "/home/weihao/dataset/kitti/data_odometry_gray/dataset/sequences/00",
               "kitti dataset path");
 using namespace std;
-
-void LoadImages(const string &str_path_to_sequence,
-                vector<string> &str_image_left_vec_path,
-                vector<string> &str_image_right_vec_path,
-                vector<double> &timestamps_vec);
 
 int main(int argc, char **argv)
 {
@@ -44,7 +38,7 @@ int main(int argc, char **argv)
   // load sequence frames
   std::vector<std::string> image_left_vec_path, image_right_vec_path;
   std::vector<double> vec_timestamp;
-  LoadImages(str_sequence_path, image_left_vec_path, image_right_vec_path, vec_timestamp);
+  common::LoadKittiImagesTimestamps(str_sequence_path, image_left_vec_path, image_right_vec_path, vec_timestamp);
   const size_t num_images = image_left_vec_path.size();
   LOG(INFO) << "nImages: " << num_images;
 
@@ -75,51 +69,4 @@ int main(int argc, char **argv)
     usleep(1e4);
   }
   return 0;
-}
-
-/// for KITTI gray database
-void LoadImages(const string &str_path_to_sequence,
-                vector<string> &str_image_left_vec_path,
-                vector<string> &str_image_right_vec_path,
-                vector<double> &timestamps_vec)
-{
-  string strPathTimeFile = str_path_to_sequence + "/times.txt";
-
-  std::ifstream fTimes(strPathTimeFile, ios::in | ios::app);
-
-  if (!fTimes.is_open())
-    LOG(FATAL) << "Open Failed";
-  while (!fTimes.eof())
-  {
-    string s;
-    getline(fTimes, s);
-    if (!s.empty())
-    {
-      stringstream ss;
-      ss << s;
-      double t;
-      ss >> t;
-      timestamps_vec.push_back(t);
-    }
-    else
-    {
-      LOG(ERROR) << "Empty";
-    }
-  }
-
-  string strPrefixLeft = str_path_to_sequence + "/image_0/";
-  string strPrefixRight = str_path_to_sequence + "/image_1/";
-
-  const size_t nTimes = timestamps_vec.size();
-  str_image_left_vec_path.resize(nTimes);
-  str_image_right_vec_path.resize(nTimes);
-
-  for (int i = 0; i < nTimes; i++)
-  {
-    stringstream ss;
-    ss << setfill('0') << setw(6) << i;
-    str_image_left_vec_path[i] = strPrefixLeft + ss.str() + ".png";
-    str_image_right_vec_path[i] = strPrefixRight + ss.str() + ".png";
-  }
-  fTimes.close();
 }

@@ -5,17 +5,28 @@ namespace ssvio {
 System::System(const std::string &config_file_path)
   : sys_config_file_path_(config_file_path)
 {
-  LOG_ASSERT(!sys_config_file_path_.empty()) << " !sys_config_file_path_.empty() ";
+  LOG_ASSERT(!sys_config_file_path_.empty());
   ssvio::Setting::getSingleton()->InitParamSetting(sys_config_file_path_);
-  view_ui_ = std::make_shared<ui::PangolinWindow>();
-  LOG_ASSERT(view_ui_->Init()) << "view_ui_->Init() Failed";
+
   GenerateSteroCamera();
+  GenerateORBextractor();
+
+  frontend_ = std::make_shared<FrontEnd>();
+  frontend_->SetCamera(left_camera_, right_camera_);
+  frontend_->SetOrbExtractor(orb_extractor_);
+
+  view_ui_ = std::make_shared<ui::PangolinWindow>();
+  LOG_ASSERT(view_ui_->Init());
 }
 
-std::shared_ptr<ui::PangolinWindow> System::getViewUi() const
+bool System::RunStep(const cv::Mat &left_img, const cv::Mat &right_img,
+                     const double timestamp)
 {
-  return view_ui_;
+  LOG_ASSERT(!left_img.empty() && !right_img.empty() && timestamp >= 0);
+  bool track_success = frontend_->GrabSteroImage(left_img, right_img, timestamp);
+  return track_success;
 }
+
 void System::GenerateSteroCamera()
 {
   // load the camera params from config file
@@ -76,4 +87,16 @@ void System::GenerateSteroCamera()
                                                 Sophus::SE3d(Sophus::SO3d(), t_right),
                                                 dist_coef_right));
 }
+
+void System::GenerateORBextractor()
+{
+  int num_orb_bew_features = Setting::Get<int>("ORBextractor.nNewFeatures");
+  float ccale_factor = Setting::Get<float>("ORBextractor.scaleFactor");
+  int n_levels = Setting::Get<int>("ORBextractor.nLevels");
+  int fIniThFAST = Setting::Get<int>("ORBextractor.iniThFAST");
+  int fMinThFAST = Setting::Get<int>("ORBextractor.minThFAST");
+  orb_extractor_ = ORBextractor::Ptr(new ORBextractor(
+      num_orb_bew_features, ccale_factor, n_levels, fIniThFAST, fMinThFAST));
+}
+
 } // namespace ssvio
