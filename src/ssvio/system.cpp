@@ -11,11 +11,14 @@ System::System(const std::string &config_file_path)
   GenerateSteroCamera();
   GenerateORBextractor();
 
+  view_ui_ = std::make_shared<ui::PangolinWindow>();
+
   frontend_ = std::make_shared<FrontEnd>();
   frontend_->SetCamera(left_camera_, right_camera_);
   frontend_->SetOrbExtractor(orb_extractor_);
+  frontend_->SetOrbInitExtractor(orb_init_extractor_);
+  frontend_->SetViewUI(view_ui_);
 
-  view_ui_ = std::make_shared<ui::PangolinWindow>();
   LOG_ASSERT(view_ui_->Init());
 }
 
@@ -91,12 +94,17 @@ void System::GenerateSteroCamera()
 void System::GenerateORBextractor()
 {
   int num_orb_bew_features = Setting::Get<int>("ORBextractor.nNewFeatures");
-  float ccale_factor = Setting::Get<float>("ORBextractor.scaleFactor");
+  float scale_factor = Setting::Get<float>("ORBextractor.scaleFactor");
   int n_levels = Setting::Get<int>("ORBextractor.nLevels");
   int fIniThFAST = Setting::Get<int>("ORBextractor.iniThFAST");
   int fMinThFAST = Setting::Get<int>("ORBextractor.minThFAST");
   orb_extractor_ = ORBextractor::Ptr(new ORBextractor(
-      num_orb_bew_features, ccale_factor, n_levels, fIniThFAST, fMinThFAST));
+      num_orb_bew_features, scale_factor, n_levels, fIniThFAST, fMinThFAST));
+
+  int num_features_init = Setting::Get<int>("ORBextractor.nInitFeatures");
+
+  orb_init_extractor_ = ORBextractor::Ptr(new ORBextractor(
+      num_features_init, scale_factor, n_levels, fIniThFAST, fMinThFAST));
 }
 
 } // namespace ssvio

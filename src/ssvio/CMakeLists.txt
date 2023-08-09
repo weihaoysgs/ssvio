@@ -8,4 +8,6 @@ add_library(ssvio SHARED
         keyframe.cpp
         map.cpp
         mappoint.cpp
+        setting.cpp
+        orbpattern.cpp
 )

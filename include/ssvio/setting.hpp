@@ -45,8 +45,6 @@ class Setting
   cv::FileStorage file_;
 };
 
-std::shared_ptr<Setting> Setting::singleton_ = nullptr;
-
 inline bool Setting::InitParamSetting(const std::string config_file_path)
 {
   LOG_ASSERT(std::filesystem::exists(config_file_path));
