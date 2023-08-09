@@ -24,7 +24,7 @@ Camera.width: 1241
 Camera.height: 376
 
 Camera.Base.Line: 386.1448
-Camera.NeedUndistortion: false
+Camera.NeedUndistortion: 0
 Camera.fps: 10
 
 
@@ -46,3 +46,6 @@ ORBextractor.nLevels: 8
 # You can lower these values if your images have low contrast
 ORBextractor.iniThFAST: 20
 ORBextractor.minThFAST: 7
+
+View.ORB.Extractor.Result: 1
+View.LK.Folw: 1

@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     cv::Mat img_right = cv::imread(image_right_vec_path[ni], cv::IMREAD_GRAYSCALE);
     double timestamp = vec_timestamp[ni];
     LOG_IF(FATAL, img_left.empty()) << "Failed to load image at: " << image_left_vec_path[ni];
-    LOG(INFO) << "Timestamp " << timestamp;
+//    LOG(INFO) << "Timestamp " << timestamp;
     system.RunStep(img_left, img_right, timestamp);
     usleep(1e4);
   }

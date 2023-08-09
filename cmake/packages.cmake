@@ -2,7 +2,7 @@
 include_directories(${PROJECT_SOURCE_DIR}/thirdparty/eigen)
 include_directories(${PROJECT_SOURCE_DIR}/thirdparty/sophus)
 include_directories(${PROJECT_SOURCE_DIR}/thirdparty/g2o)
-include_directories(${PROJECT_SOURCE_DIR}/thirdparty/DBoW2)
+include_directories(${PROJECT_SOURCE_DIR}/thirdparty)
 
 # OpenCV
 find_package(OpenCV 3.2.0 REQUIRED)

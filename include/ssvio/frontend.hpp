@@ -7,13 +7,17 @@
 
 #include "ssvio/camera.hpp"
 #include "opencv2/opencv.hpp"
-#include "ssvio/orbextractor.hpp"
-#include "ssvio/frame.hpp"
 #include "ui/pangolin_window.hpp"
-#include "ssvio/keyframe.hpp"
 #include "ssvio/setting.hpp"
 
 namespace ssvio {
+
+class Frame;
+class ORBextractor;
+class Camera;
+class Map;
+class KeyFrame;
+class MapPoint;
 
 enum class FrontendStatus
 {
@@ -32,7 +36,9 @@ class FrontEnd
   void SetViewUI(const std::shared_ptr<ui::PangolinWindow> &ui);
   void SetOrbExtractor(const std::shared_ptr<ssvio::ORBextractor> &orb);
   void SetOrbInitExtractor(const std::shared_ptr<ssvio::ORBextractor> &orb);
-  void DetectFeatures();
+  int DetectFeatures();
+  bool SteroInit();
+  void FindFeaturesInRight();
   bool GrabSteroImage(const cv::Mat &left_img, const cv::Mat &right_img,
                       const double timestamp);
 
@@ -40,7 +46,7 @@ class FrontEnd
   FrontendStatus track_status_ = FrontendStatus::INITING;
 
   std::shared_ptr<Frame> last_frame_ = nullptr;
-  std::shared_ptr<Keyframe> reference_kf_ = nullptr;
+  std::shared_ptr<KeyFrame> reference_kf_ = nullptr;
   std::shared_ptr<Frame> current_frame_ = nullptr;
   std::shared_ptr<Camera> left_camera_ = nullptr;
   std::shared_ptr<Camera> right_camera_ = nullptr;
@@ -58,6 +64,8 @@ class FrontEnd
   int num_features_init_good_;
 
   bool is_need_undistortion_ = false;
+  bool show_orb_detect_result_ = false;
+  bool show_lk_result_ = false;
 };
 } // namespace ssvio
 
