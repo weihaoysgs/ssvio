@@ -14,7 +14,7 @@ Language:        Cpp
 # BasedOnStyle:  LLVM
 
 #访问声明符缩进
-AccessModifierOffset: -4
+AccessModifierOffset: -1
 # 开括号后的对齐(包括小括号/大括号/尖括号), 建议使用Align
 # - Align: 对于开括号, 即在换行情况下, 换行的参数跟开括号对齐, 建议使用
 # - DontAlign: 不对于开括号, 即换行时使用配置的空格数

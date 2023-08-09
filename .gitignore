@@ -5,3 +5,4 @@ thirdparty/g2o/build/
 thirdparty/DBoW2/build/
 kittidataset/
 bin/
+lib/
