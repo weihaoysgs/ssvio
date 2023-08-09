@@ -30,11 +30,11 @@ int main(int argc, char **argv)
   FLAGS_colorlogtostderr = true;
   google::ParseCommandLineFlags(&argc, &argv, true);
 
-  double angular_velocity_rad = FLAGS_angular_velocity * M_PI / 180.0; // 弧度制角速度
-  Sophus::SE3d pose;                                                   // TWB表示的位姿
-  Eigen::Vector3d omega(0, 0, angular_velocity_rad);                   // 角速度矢量
-  Eigen::Vector3d v_body(FLAGS_linear_velocity, 0, FLAGS_linear_velocity);                 // 本体系速度
-  const double dt = 0.05;                                              // 每次更新的时间
+  double angular_velocity_rad = FLAGS_angular_velocity * M_PI / 180.0;     // 弧度制角速度
+  Sophus::SE3d pose;                                                       // TWB表示的位姿
+  Eigen::Vector3d omega(0, 0, angular_velocity_rad);                       // 角速度矢量
+  Eigen::Vector3d v_body(FLAGS_linear_velocity, 0, FLAGS_linear_velocity); // 本体系速度
+  const double dt = 0.05;                                                  // 每次更新的时间
 
   ui::PangolinWindow ui;
   LOG_ASSERT(ui.Init()) << "Ui init failed";

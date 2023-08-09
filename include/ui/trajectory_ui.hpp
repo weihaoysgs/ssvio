@@ -20,7 +20,7 @@ class TrajectoryUI
 {
   public:
   explicit TrajectoryUI(Eigen::Vector3f color)
-  : color_(std::move(color))
+    : color_(std::move(color))
   {
     position_.reserve(max_size_);
     pose_.reserve(max_size_);
@@ -31,7 +31,11 @@ class TrajectoryUI
   void Render();
   /// clear the pose and trajectory
   void Clear();
-  std::vector<Sophus::SE3f> GetTrajecotryPoses() const { return pose_; };
+  std::vector<Sophus::SE3f> GetTrajecotryPoses() const
+  {
+    return pose_;
+  };
+
   private:
   size_t max_size_ = 1e6;
   std::vector<Eigen::Vector3f> position_;           /// trajectory

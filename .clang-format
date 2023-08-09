@@ -87,7 +87,7 @@ AllowShortEnumsOnASingleLine: true
 AllowShortBlocksOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: false
 # 允许短的函数放在同一行, 可选值: None, InlineOnly(定义在类中), Empty(空函数), Inline(定义在类中，空函数), All
-AllowShortFunctionsOnASingleLine: All
+AllowShortFunctionsOnASingleLine: None
 # 允许lambda在一行中, 同上, 建议All
 AllowShortLambdasOnASingleLine: All
 # 是否将简单的if(else/else if)语句中的body跟if(else/else if)放置于同一行，可选值
@@ -176,7 +176,7 @@ QualifierAlignment: Leave
 # 未在文档中找到
 CompactNamespaces: false
 # 构造函数初始化列表缩进, 建议0
-ConstructorInitializerIndentWidth: 0
+ConstructorInitializerIndentWidth: 2
 # 函数调用续行对齐, 建议4
 ContinuationIndentWidth: 4
 # C++11的统一初始化列表大括号风格, 建议true
