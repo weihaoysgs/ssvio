@@ -28,6 +28,7 @@ class System
   std::shared_ptr<ssvio::Camera> left_camera_ = nullptr;
   std::shared_ptr<ssvio::Camera> right_camera_ = nullptr;
   std::shared_ptr<FrontEnd> frontend_ = nullptr;
+  std::shared_ptr<Map> map_ = nullptr;
   std::shared_ptr<ORBextractor> orb_extractor_ = nullptr, orb_init_extractor_ = nullptr;
 };
 } // namespace ssvio

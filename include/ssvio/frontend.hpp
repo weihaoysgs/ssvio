@@ -9,6 +9,7 @@
 #include "opencv2/opencv.hpp"
 #include "ui/pangolin_window.hpp"
 #include "ssvio/setting.hpp"
+#include "ssvio/algorithm.hpp"
 
 namespace ssvio {
 
@@ -36,9 +37,12 @@ class FrontEnd
   void SetViewUI(const std::shared_ptr<ui::PangolinWindow> &ui);
   void SetOrbExtractor(const std::shared_ptr<ssvio::ORBextractor> &orb);
   void SetOrbInitExtractor(const std::shared_ptr<ssvio::ORBextractor> &orb);
+  void SetMap(const std::shared_ptr<Map> &map);
   int DetectFeatures();
   bool SteroInit();
-  void FindFeaturesInRight();
+  int FindFeaturesInRight();
+  bool BuidInitMap();
+  void InsertKeyFrame();
   bool GrabSteroImage(const cv::Mat &left_img, const cv::Mat &right_img,
                       const double timestamp);
 
@@ -53,6 +57,7 @@ class FrontEnd
   std::shared_ptr<ssvio::ORBextractor> orb_extractor_ = nullptr;
   std::shared_ptr<ssvio::ORBextractor> orb_extractor_init_ = nullptr;
   std::shared_ptr<ui::PangolinWindow> view_ui_ = nullptr;
+  std::shared_ptr<Map> map_ = nullptr;
 
   /// the pose or motion variables of the current frame
   Sophus::SE3d  relative_motion_;  /// T_{c_{i, i-1}}

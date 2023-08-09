@@ -8,6 +8,7 @@
 #include "ssvio/orbextractor.hpp"
 #include "ssvio/mappoint.hpp"
 #include "ssvio/keyframe.hpp"
+#include "ssvio/map.hpp"
 
 namespace ssvio {
 FrontEnd::FrontEnd()
@@ -95,14 +96,14 @@ int FrontEnd::DetectFeatures()
   if (show_orb_detect_result_ && cnt_detected > 0)
   {
     cv::Mat show_img(current_frame_->left_image_.size(), CV_8UC1);
-    cv::drawKeypoints(current_frame_->left_image_, kps, show_img);
+    cv::drawKeypoints(current_frame_->left_image_, kps, show_img, cv::Scalar(0, 255, 0));
     cv::imshow("orb_detect_result", show_img);
     cv::waitKey(1);
   }
   return cnt_detected;
 }
 
-void FrontEnd::FindFeaturesInRight()
+int FrontEnd::FindFeaturesInRight()
 {
   std::vector<cv::Point2f> left_cam_kps, right_cam_kps;
   left_cam_kps.reserve(current_frame_->features_left_.size());
@@ -170,13 +171,72 @@ void FrontEnd::FindFeaturesInRight()
         cv::Point2i pt1 = current_frame_->features_left_[i]->kp_position_.pt;
         cv::Point2i pt2 = current_frame_->features_right_[i]->kp_position_.pt;
         cv::circle(show, pt1, 2, cv::Scalar(0, 250, 0), 2);
-        cv::line(show, pt1, pt2, cv::Scalar(0, 0, 255),1.5);
+        cv::line(show, pt1, pt2, cv::Scalar(0, 0, 255), 1.5);
       }
     }
     cv::imshow("LK", show);
     cv::waitKey(1);
   }
+
+  return num_good_points;
 }
+
+bool FrontEnd::SteroInit()
+{
+  int cnt_detected_features = DetectFeatures();
+  int cnt_track_features = FindFeaturesInRight();
+  if (cnt_track_features < num_features_init_good_)
+  {
+    LOG(WARNING) << "Too few feature points";
+    return false;
+  }
+  bool build_init_map_success = BuidInitMap();
+  if (build_init_map_success)
+  {
+    track_status_ = FrontendStatus::TRACKING_GOOD;
+    return true;
+  }
+  return false;
+}
+
+bool FrontEnd::BuidInitMap()
+{
+  std::vector<Sophus::SE3d> poses{left_camera_->getPose(), right_camera_->getPose()};
+  size_t cnt_init_landmarks = 0;
+  for (size_t i = 0, N = current_frame_->features_left_.size(); i < N; i++)
+  {
+    if (current_frame_->features_right_[i] == nullptr)
+      continue;
+    /// create mappoints by triangulation
+    std::vector<Eigen::Vector3d> points{
+        left_camera_->pixel2camera(
+            Eigen::Vector2d(current_frame_->features_left_[i]->kp_position_.pt.x,
+                            current_frame_->features_left_[i]->kp_position_.pt.y)),
+        right_camera_->pixel2camera(
+            Eigen::Vector2d(current_frame_->features_right_[i]->kp_position_.pt.x,
+                            current_frame_->features_right_[i]->kp_position_.pt.y))};
+    Eigen::Vector3d pworld = Eigen::Vector3d::Zero();
+
+    if (triangulation(poses, points, pworld) && pworld[2] > 0)
+    {
+      /// if successfully triangulate, then create new mappoint and insert it to the map
+      MapPoint::Ptr new_map_point(new MapPoint);
+      new_map_point->SetPosition(pworld);
+      current_frame_->features_left_[i]->map_point_ = new_map_point;
+      current_frame_->features_right_[i]->map_point_ = new_map_point;
+      map_->InsertMapPoint(new_map_point);
+
+      cnt_init_landmarks++;
+    }
+  }
+
+  InsertKeyFrame();
+  LOG(INFO) << "Build Init Map Success";
+  cv::destroyAllWindows();
+  return true;
+}
+
+void FrontEnd::InsertKeyFrame() { }
 
 void FrontEnd::SetOrbExtractor(const std::shared_ptr<ssvio::ORBextractor> &orb)
 {
@@ -196,11 +256,10 @@ void FrontEnd::SetOrbInitExtractor(const std::shared_ptr<ssvio::ORBextractor> &o
   orb_extractor_init_ = orb;
 }
 
-bool FrontEnd::SteroInit()
+void FrontEnd::SetMap(const shared_ptr<Map> &map)
 {
-  DetectFeatures();
-  FindFeaturesInRight();
-  return true;
+  assert(map != nullptr);
+  map_ = map;
 }
 
 } // namespace ssvio

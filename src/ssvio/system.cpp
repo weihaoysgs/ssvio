@@ -1,4 +1,5 @@
 #include "ssvio/system.hpp"
+#include "ssvio/map.hpp"
 
 namespace ssvio {
 
@@ -12,12 +13,14 @@ System::System(const std::string &config_file_path)
   GenerateORBextractor();
 
   view_ui_ = std::make_shared<ui::PangolinWindow>();
+  map_ = std::make_shared<Map>();
 
   frontend_ = std::make_shared<FrontEnd>();
   frontend_->SetCamera(left_camera_, right_camera_);
   frontend_->SetOrbExtractor(orb_extractor_);
   frontend_->SetOrbInitExtractor(orb_init_extractor_);
   frontend_->SetViewUI(view_ui_);
+  frontend_->SetMap(map_);
 
   LOG_ASSERT(view_ui_->Init());
 }
