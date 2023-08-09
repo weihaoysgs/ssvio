@@ -23,7 +23,7 @@ Camera2.p2: 0.0
 Camera.width: 1241
 Camera.height: 376
 
-Stereo.Base.Line: 0.53716
-
+Camera.Base.Line: 386.1448
+Camera.NeedUndistortion: false
 Camera.fps: 10
 

@@ -5,6 +5,7 @@
 #include "ui/pangolin_window.hpp"
 #include "glog/logging.h"
 #include "filesystem"
+#include "ssvio/camera.hpp"
 
 namespace ssvio {
 class System
@@ -15,10 +16,13 @@ class System
   explicit System(const std::string &config_file_path);
   ~System() = default;
   std::shared_ptr<ui::PangolinWindow> getViewUi() const;
+  void GenerateSteroCamera();
 
  private:
   std::shared_ptr<ui::PangolinWindow> view_ui_ = nullptr;
   std::string sys_config_file_path_;
+  std::shared_ptr<ssvio::Camera> left_camera_ = nullptr;
+  std::shared_ptr<ssvio::Camera> right_camera_ = nullptr;
 };
 } // namespace ssvio
 

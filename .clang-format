@@ -87,7 +87,7 @@ AllowShortEnumsOnASingleLine: true
 AllowShortBlocksOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: false
 # 允许短的函数放在同一行, 可选值: None, InlineOnly(定义在类中), Empty(空函数), Inline(定义在类中，空函数), All
-AllowShortFunctionsOnASingleLine: None
+AllowShortFunctionsOnASingleLine: Inline
 # 允许lambda在一行中, 同上, 建议All
 AllowShortLambdasOnASingleLine: All
 # 是否将简单的if(else/else if)语句中的body跟if(else/else if)放置于同一行，可选值
@@ -115,7 +115,7 @@ AttributeMacros:
 # 函数调用时的参数(Arguments)是否放置于一行, false不放置, true强制一个调用参数一行, 建议false
 BinPackArguments: false
 # 函数定义参数(Parameters)是否放置于一行, 同BinPackArguments
-BinPackParameters: false
+BinPackParameters: true
 
 # 大括号换行
 BraceWrapping:
@@ -156,7 +156,7 @@ BreakBeforeInheritanceComma: false
 BreakInheritanceList: BeforeColon
 BreakBeforeTernaryOperators: true
 # 是否在构造函数初始化列表的,前换行
-BreakConstructorInitializersBeforeComma: false
+BreakConstructorInitializersBeforeComma: true
 # 继承列表换行风格, 使用BeforeComma适合
 BreakConstructorInitializers: BeforeComma
 # Java注解相关, 跳过
@@ -164,7 +164,7 @@ BreakAfterJavaFieldAnnotations: false
 # 字面字符串是否换行, true
 BreakStringLiterals: true
 # 代码列字符上限
-ColumnLimit:     100
+ColumnLimit:     90
 # pragma注释
 CommentPragmas:  '^ IWYU pragma:'
 # 注释关键字对齐(const/volatile), 建议Leave
@@ -197,7 +197,7 @@ ExperimentalAutoDetectBinPacking: false
 # - BinPack: 两个参数一行
 # - CurrentLine: 所有参数放置于一行, 如果放不下, 就一个参数一行
 # - NextLine: 同CurrentLine有点像, 唯一不同就是如果放不行, 将剩余参数放置于下一行(即不自动一参一行)
-PackConstructorInitializers: Never
+PackConstructorInitializers: NextLine
 BasedOnStyle:    ''
 # 废弃配置
 ConstructorInitializerAllOnOneLineOrOnePerLine: false

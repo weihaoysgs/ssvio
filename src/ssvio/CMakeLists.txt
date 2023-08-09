@@ -1,3 +1,5 @@
 add_library(ssvio SHARED
-    system.cpp
+        system.cpp
+        frontend.cpp
+        camera.cpp
 )
