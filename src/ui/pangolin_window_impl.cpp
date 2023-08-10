@@ -40,7 +40,7 @@ void PangolinWindowImpl::CreateDisplayLayout()
                                                   win_width_ / 2.,
                                                   cam_z_near_,
                                                   cam_z_far_);
-  auto model_view_main = pangolin::ModelViewLookAt(0, 0, 1000, 0, 0, 0, pangolin::AxisY);
+  auto model_view_main = pangolin::ModelViewLookAt(0, 1000, 0, 0, 0, 0, pangolin::AxisZ);
   s_cam_main_ = pangolin::OpenGlRenderState(std::move(proj_mat_main), std::move(model_view_main));
 
   /// Add named OpenGL viewport to window and provide 3D Handler

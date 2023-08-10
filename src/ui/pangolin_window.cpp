@@ -61,6 +61,6 @@ void PangolinWindow::AddCurrentFrame(const std::shared_ptr<ssvio::Frame> &frame)
   ShowVisualOdomResult(current_VO_pose);
   ViewImage(frame->left_image_, frame->right_image_);
   PlotAngleValue(
-      current_VO_pose.angleZ(), current_VO_pose.angleY(), current_VO_pose.angleX());
+      current_VO_pose.angleY(), current_VO_pose.angleX(), current_VO_pose.angleZ());
 }
 } // namespace ui
