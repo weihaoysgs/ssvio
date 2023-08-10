@@ -8,6 +8,7 @@
 #include "ssvio/camera.hpp"
 #include "ssvio/frontend.hpp"
 #include "ssvio/orbextractor.hpp"
+#include "ssvio/backend.hpp"
 
 namespace ssvio {
 class System

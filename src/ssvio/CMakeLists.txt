@@ -10,4 +10,5 @@ add_library(ssvio SHARED
         mappoint.cpp
         setting.cpp
         orbpattern.cpp
+        backend.cpp
 )
