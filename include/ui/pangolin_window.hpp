@@ -7,6 +7,7 @@
 
 #include "ui/pangolin_window_impl.hpp"
 #include "ssvio/frame.hpp"
+#include "ssvio/map.hpp"
 
 namespace ui {
 
@@ -27,6 +28,7 @@ class PangolinWindow
   void PlotAngleValue(float yaw, float pitch, float roll);
   void ShowVisualOdomResult(const Sophus::SE3d &pose);
   void AddCurrentFrame(const std::shared_ptr<ssvio::Frame> &frame);
+  void AddShowPointCloud(const Eigen::Vector3d &point);
   private:
   std::unique_ptr<ui::PangolinWindowImpl> pangolin_win_impl_;
 };

@@ -63,4 +63,9 @@ void PangolinWindow::AddCurrentFrame(const std::shared_ptr<ssvio::Frame> &frame)
   PlotAngleValue(
       current_VO_pose.angleY(), current_VO_pose.angleX(), current_VO_pose.angleZ());
 }
+
+void PangolinWindow::AddShowPointCloud(const Eigen::Vector3d &point)
+{
+  pangolin_win_impl_->UpdateCloudVOPoint(point);
+}
 } // namespace ui

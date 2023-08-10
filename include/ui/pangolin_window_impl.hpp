@@ -14,6 +14,7 @@
 #include "unistd.h"
 
 #include "ui/trajectory_ui.hpp"
+#include "ui/cloud_ui.hpp"
 
 namespace ui {
 
@@ -42,6 +43,7 @@ class PangolinWindowImpl
   bool RenderPlotterDataLog();
   void SetEulerAngle(float yaw, float pitch, float roll);
   void UpdateVisualOdometerState(const Sophus::SE3d &pose);
+  void UpdateCloudVOPoint(const Eigen::Vector3d &point);
 
   public:
   std::thread render_thread_;
@@ -50,6 +52,7 @@ class PangolinWindowImpl
   std::mutex update_img_mutex_;
   std::mutex update_euler_angle_mutex_;
   std::mutex update_vo_state_;
+  std::mutex update_vo_cloud_;
 
   void Render();
 
@@ -84,6 +87,7 @@ class PangolinWindowImpl
 
   std::unique_ptr<ui::TrajectoryUI> no_loop_traj_ = nullptr;
   std::unique_ptr<ui::TrajectoryUI> loop_traj_ = nullptr;
+  std::unique_ptr<ui::CloudUI> camera_vo_cloud_ = nullptr;
 
   cv::Mat right_img_;
   cv::Mat left_img_;

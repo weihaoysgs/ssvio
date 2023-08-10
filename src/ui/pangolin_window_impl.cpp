@@ -25,6 +25,8 @@ bool PangolinWindowImpl::InitPangolin()
 
   //  current_scan_.reset(new PointCloudType);
   //  current_scan_ui_.reset(new ui::UiCloud);
+  camera_vo_cloud_ = std::make_unique<ui::CloudUI>(Eigen::Vector3d(1.0, 0, 0),
+                                                   ui::CloudUI::UseColor::HEIGHT_COLOR);
 
   /// data log
   log_yaw_angle_.SetLabels(
@@ -51,7 +53,13 @@ void PangolinWindowImpl::CreateDisplayLayout()
                                                   cam_z_far_);
 
   auto model_view_main = pangolin::ModelViewLookAt(
-      viewpoint_X, viewpoint_Y, viewpoint_Z, 0, 0, 0, static_cast<pangolin::AxisDirection>(view_axis_direction));
+      viewpoint_X,
+      viewpoint_Y,
+      viewpoint_Z,
+      0,
+      0,
+      0,
+      static_cast<pangolin::AxisDirection>(view_axis_direction));
 
   s_cam_main_ =
       pangolin::OpenGlRenderState(std::move(proj_mat_main), std::move(model_view_main));
@@ -223,8 +231,10 @@ void PangolinWindowImpl::RenderAll()
   {
     /// when render image, we render a different view which not render point
     pangolin::Display(dis_3d_main_name_).Activate(s_cam_main_);
-    std::unique_lock<std::mutex> lck(update_vo_state_);
+    std::unique_lock<std::mutex> lck1(update_vo_state_);
     no_loop_traj_->Render();
+    std::unique_lock<std::mutex> lck2(update_vo_cloud_);
+    camera_vo_cloud_->Render();
   }
 }
 
@@ -248,6 +258,12 @@ void PangolinWindowImpl::UpdateVisualOdometerState(const Sophus::SE3d &pose)
 {
   std::unique_lock<std::mutex> lck(update_vo_state_);
   no_loop_traj_->AddTrajectoryPose(pose);
+}
+
+void PangolinWindowImpl::UpdateCloudVOPoint(const Eigen::Vector3d &point)
+{
+  std::unique_lock<std::mutex> lck(update_vo_cloud_);
+  camera_vo_cloud_->AddCloudPoint(point);
 }
 
 } // namespace ui

@@ -451,7 +451,11 @@ bool FrontEnd::BuidInitMap()
       new_map_point->SetPosition(pworld);
       current_frame_->features_left_[i]->map_point_ = new_map_point;
       current_frame_->features_right_[i]->map_point_ = new_map_point;
-      map_->InsertMapPoint(new_map_point);
+
+      if (map_)
+        map_->InsertMapPoint(new_map_point);
+      if (view_ui_)
+        view_ui_->AddShowPointCloud(new_map_point->getPosition());
 
       cnt_init_landmarks++;
     }
@@ -504,8 +508,10 @@ int FrontEnd::TriangulateNewPoints()
       new_mappoint->SetPosition(current_pose_Twc * pt_camera1);
       current_frame_->features_left_[i]->map_point_ = new_mappoint;
       current_frame_->features_right_[i]->map_point_ = new_mappoint;
-
-      map_->InsertMapPoint(new_mappoint);
+      if (map_)
+        map_->InsertMapPoint(new_mappoint);
+      if (view_ui_)
+        view_ui_->AddShowPointCloud(new_mappoint->getPosition());
       cnt_trangulat_pts++;
     }
   }
