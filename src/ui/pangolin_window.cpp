@@ -5,21 +5,31 @@
 #include "ui/pangolin_window.hpp"
 
 namespace ui {
-PangolinWindow::PangolinWindow() { pangolin_win_impl_ = std::make_unique<PangolinWindowImpl>(); }
+PangolinWindow::PangolinWindow()
+{
+  pangolin_win_impl_ = std::make_unique<PangolinWindowImpl>();
+}
 
 bool PangolinWindow::Init()
 {
   bool inited = pangolin_win_impl_->InitPangolin();
   if (inited)
   {
-    pangolin_win_impl_->render_thread_ = std::thread([this]() { pangolin_win_impl_->Render(); });
+    pangolin_win_impl_->render_thread_ =
+        std::thread([this]() { pangolin_win_impl_->Render(); });
   }
   return inited;
 }
 
-bool PangolinWindow::ShouldQuit() const { return pangolin::ShouldQuit(); }
+bool PangolinWindow::ShouldQuit() const
+{
+  return pangolin::ShouldQuit();
+}
 
-PangolinWindow::~PangolinWindow() { Quit(); }
+PangolinWindow::~PangolinWindow()
+{
+  Quit();
+}
 
 void PangolinWindow::Quit() const
 {
@@ -43,5 +53,14 @@ void PangolinWindow::PlotAngleValue(float yaw, float pitch, float roll)
 void PangolinWindow::ShowVisualOdomResult(const Sophus::SE3d &pose)
 {
   pangolin_win_impl_->UpdateVisualOdometerState(pose);
+}
+
+void PangolinWindow::AddCurrentFrame(const std::shared_ptr<ssvio::Frame> &frame)
+{
+  Sophus::SE3d current_VO_pose = frame->getPose().inverse();
+  ShowVisualOdomResult(current_VO_pose);
+  ViewImage(frame->left_image_, frame->right_image_);
+  PlotAngleValue(
+      current_VO_pose.angleZ(), current_VO_pose.angleY(), current_VO_pose.angleX());
 }
 } // namespace ui

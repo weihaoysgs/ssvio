@@ -6,6 +6,7 @@
 #define SSVIO_PANGOLIN_WINDOW_HPP
 
 #include "ui/pangolin_window_impl.hpp"
+#include "ssvio/frame.hpp"
 
 namespace ui {
 
@@ -25,7 +26,7 @@ class PangolinWindow
   void ViewImage(const cv::Mat &img_left, const cv::Mat &img_right);
   void PlotAngleValue(float yaw, float pitch, float roll);
   void ShowVisualOdomResult(const Sophus::SE3d &pose);
-
+  void AddCurrentFrame(const std::shared_ptr<ssvio::Frame> &frame);
   private:
   std::unique_ptr<ui::PangolinWindowImpl> pangolin_win_impl_;
 };

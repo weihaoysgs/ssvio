@@ -11,6 +11,8 @@
 
 namespace ssvio {
 
+class MapPoint;
+
 class KeyFrame
 {
  public:

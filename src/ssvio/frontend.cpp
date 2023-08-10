@@ -19,6 +19,7 @@ FrontEnd::FrontEnd()
   is_need_undistortion_ = Setting::Get<int>("Camera.NeedUndistortion");
   show_orb_detect_result_ = Setting::Get<int>("View.ORB.Extractor.Result");
   show_lk_result_ = Setting::Get<int>("View.LK.Folw");
+  min_init_landmark_ = Setting::Get<int>("Min.Init.Landmark.Num");
 }
 void FrontEnd::SetCamera(const Camera::Ptr &left, const Camera::Ptr &right)
 {
@@ -41,7 +42,7 @@ bool FrontEnd::GrabSteroImage(const cv::Mat &left_img, const cv::Mat &right_img,
   }
 
   {
-    // std::unique_lock<std::mutex> lck(_mpMap->mmutexMapUpdate);
+    /// std::unique_lock<std::mutex> lck(_mpMap->mmutexMapUpdate);
     switch (track_status_)
     {
     case FrontendStatus::INITING:
@@ -52,17 +53,238 @@ bool FrontEnd::GrabSteroImage(const cv::Mat &left_img, const cv::Mat &right_img,
     case FrontendStatus::TRACKING_BAD:
     case FrontendStatus::TRACKING_GOOD:
       {
+        Track();
         break;
       }
     case FrontendStatus::LOST:
       {
+        /// TODO
         break;
       }
     }
   }
+  /// 这里的显示是只用于在图像上画二维点，并通过OpenCV进行显示而已，不涉及其他
+  if (view_ui_)
+  {
+    view_ui_->AddCurrentFrame(current_frame_);
+  }
 
   last_frame_ = current_frame_;
   return true;
+}
+
+bool FrontEnd::Track()
+{
+  /// use constant velocity model to preliminarily estimiate the current frame's pose
+  if (last_frame_)
+  {
+    /// T{i k} = T{i-1_i-2} * T{i-1_k}
+    /// 更广泛点的说法是 relative_motion_ 表示的是相邻两个帧之间的运动，
+    /// 我们有了上一帧的位姿估计则用上一帧的姿态根据恒速模型乘以该运动则表示对当前帧的位姿的初始估计
+    current_frame_->SetRelativePose(relative_motion_ * last_frame_->getRelativePose());
+  }
+
+  TrackLastFrame();
+  int inline_pts = EstimateCurrentPose();
+
+  if (inline_pts > num_features_tracking_good_)
+  {
+    /// tracking good
+    track_status_ = FrontendStatus::TRACKING_GOOD;
+  }
+  else if (inline_pts > num_features_tracking_bad_)
+  {
+    /// tracking bad
+    track_status_ = FrontendStatus::TRACKING_BAD;
+    LOG(WARNING) << "---------------------";
+    LOG(WARNING) << "----TRACKING BAD!----";
+    LOG(WARNING) << "---------------------";
+  }
+  else
+  {
+    /// lost
+    track_status_ = FrontendStatus::LOST;
+    LOG(WARNING) << "---------------------";
+    LOG(WARNING) << "---Tracking LOST!----";
+    LOG(WARNING) << "---------------------";
+  }
+
+  relative_motion_ =
+      current_frame_->getRelativePose() * last_frame_->getRelativePose().inverse();
+
+  /// detect new features; create new mappoints; create new KF
+  if (track_status_ == FrontendStatus::TRACKING_BAD)
+  {
+    DetectFeatures();
+    FindFeaturesInRight();
+    TriangulateNewPoints();
+    InsertKeyFrame();
+  }
+  return true;
+}
+
+int FrontEnd::TrackLastFrame()
+{
+  std::vector<cv::Point2f> kps_last, kps_current;
+  kps_last.reserve(current_frame_->features_left_.size());
+  kps_current.reserve(last_frame_->features_left_.size());
+  for (size_t i = 0; i < last_frame_->features_left_.size(); i++)
+  {
+    Feature::Ptr feat = last_frame_->features_left_[i];
+    MapPoint::Ptr mappoint = feat->map_point_.lock();
+    kps_last.emplace_back(feat->kp_position_.pt);
+    if (mappoint)
+    {
+      Eigen::Vector2d p = left_camera_->world2pixel(mappoint->getPosition(),
+                                                    current_frame_->getRelativePose() *
+                                                        reference_kf_->getPose());
+      kps_current.emplace_back(cv::Point2f(p.x(), p.y()));
+    }
+    else
+    {
+      kps_current.emplace_back(feat->kp_position_.pt);
+    }
+  }
+  assert(kps_last.size() > 1 && kps_current.size() > 1);
+  std::vector<uchar> status;
+  cv::Mat error;
+  cv::calcOpticalFlowPyrLK(
+      last_frame_->left_image_,
+      current_frame_->left_image_,
+      kps_last,
+      kps_current,
+      status,
+      error,
+      cv::Size(11, 11),
+      3,
+      cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, 0.01),
+      cv::OPTFLOW_USE_INITIAL_FLOW);
+  int num_good_track = 0;
+  for (size_t i = 0; i < status.size(); i++)
+  {
+    /// 只会跟踪已经三角化后的点，因为没有三角化的点是无法形成BA约束的
+    if (status[i] && !last_frame_->features_left_[i]->map_point_.expired())
+    {
+      cv::KeyPoint kp(kps_current[i], 7);
+      Feature::Ptr feature(new Feature(kp));
+      feature->map_point_ = last_frame_->features_left_[i]->map_point_;
+      current_frame_->features_left_.emplace_back(feature);
+      num_good_track++;
+    }
+  }
+  // LOG(INFO) << "num_good_track: " << num_good_track;
+  return num_good_track;
+}
+
+int FrontEnd::EstimateCurrentPose()
+{
+  Eigen::Matrix3d K = left_camera_->getK();
+
+  typedef g2o::BlockSolver_6_3 BlockSolverType;
+  typedef g2o::LinearSolverDense<BlockSolverType::PoseMatrixType> LinearSolverType;
+  auto solver = new g2o::OptimizationAlgorithmLevenberg(
+      g2o::make_unique<BlockSolverType>(g2o::make_unique<LinearSolverType>()));
+  g2o::SparseOptimizer optimizer;
+  optimizer.setAlgorithm(solver);
+
+  /// vertes
+  VertexPose *vertex_pose = new VertexPose();
+  vertex_pose->setId(0);
+  /// T{i_k} * T{k_w} = T{i_w}
+  vertex_pose->setEstimate(current_frame_->getRelativePose() * reference_kf_->getPose());
+  optimizer.addVertex(vertex_pose);
+
+  /// edges
+  int index = 1;
+  std::vector<EdgeProjectionPoseOnly *> edges;
+  std::vector<Feature::Ptr> features;
+  features.reserve(current_frame_->features_left_.size());
+  edges.reserve(current_frame_->features_left_.size());
+  for (size_t i = 0; i < current_frame_->features_left_.size(); i++)
+  {
+    MapPoint::Ptr mappoint = current_frame_->features_left_[i]->map_point_.lock();
+    cv::Point2f pt = current_frame_->features_left_[i]->kp_position_.pt;
+    if (mappoint && !mappoint->is_outlier_)
+    {
+      features.emplace_back(current_frame_->features_left_[i]);
+      EdgeProjectionPoseOnly *edge =
+          new EdgeProjectionPoseOnly(mappoint->getPosition(), K);
+      edge->setId(index);
+      edge->setVertex(0, vertex_pose);
+      edge->setMeasurement(Eigen::Vector2d(pt.x, pt.y));
+      edge->setInformation(Eigen::Matrix2d::Identity());
+      edge->setRobustKernel(new g2o::RobustKernelHuber);
+
+      edges.emplace_back(edge);
+      optimizer.addEdge(edge);
+      index++;
+    }
+  }
+
+  // estimate the Pose and determine the outliers
+  // start optimization
+  const double chi2_th = 5.991;
+  int cnt_outliers = 0;
+  int num_iterations = 4;
+  for (int iteration = 0; iteration < num_iterations; iteration++)
+  {
+    optimizer.initializeOptimization();
+    optimizer.optimize(10);
+    cnt_outliers = 0;
+
+    // count the outliers, outlier is not included in estimation until it is regarded as a inlier
+    for (size_t i = 0, N = edges.size(); i < N; i++)
+    {
+      auto e = edges[i];
+      if (features[i]->is_outlier_)
+      {
+        e->computeError();
+      }
+      if (e->chi2() > chi2_th)
+      {
+        features[i]->is_outlier_ = true;
+        e->setLevel(1);
+        cnt_outliers++;
+      }
+      else
+      {
+        features[i]->is_outlier_ = false;
+        e->setLevel(0);
+      }
+
+      // remove the robust kernel to see if it's outlier
+      if (iteration == num_iterations - 2)
+      {
+        e->setRobustKernel(nullptr);
+      }
+    }
+  }
+
+  /// set pose
+  current_frame_->SetPose(vertex_pose->estimate());
+  /// T{i_k} = T{i_w} * T{k_w}.inverse()
+  current_frame_->SetRelativePose(vertex_pose->estimate() *
+                                  reference_kf_->getPose().inverse());
+
+  for (auto &feat : features)
+  {
+    if (feat->is_outlier_)
+    {
+      MapPoint::Ptr mp = feat->map_point_.lock();
+      if (mp && current_frame_->frame_id_ - reference_kf_->frame_id_ <= 2)
+      {
+        mp->is_outlier_ = true;
+        map_->AddOutlierMapPoint(mp->id_);
+      }
+      feat->map_point_.reset();
+      feat->is_outlier_ = false;
+    }
+  }
+
+  //  LOG(INFO) << "Frontend: Outliers/Inliers in frontend current pose estimating: "
+  // << cntOutliers << "/" << features.size() - cntOutliers;
+
+  return features.size() - cnt_outliers;
 }
 
 int FrontEnd::DetectFeatures()
@@ -100,6 +322,10 @@ int FrontEnd::DetectFeatures()
     cv::imshow("orb_detect_result", show_img);
     cv::waitKey(1);
   }
+
+  if (track_status_ == FrontendStatus::TRACKING_BAD)
+    LOG(INFO) << "Detect New Features: " << cnt_detected
+              << " left image features size: " << current_frame_->features_left_.size();
   return cnt_detected;
 }
 
@@ -177,7 +403,8 @@ int FrontEnd::FindFeaturesInRight()
     cv::imshow("LK", show);
     cv::waitKey(1);
   }
-
+  if (track_status_ == FrontendStatus::TRACKING_BAD)
+    LOG(INFO) << "LK Track New Features: " << num_good_points;
   return num_good_points;
 }
 
@@ -230,13 +457,91 @@ bool FrontEnd::BuidInitMap()
     }
   }
 
+  if (cnt_init_landmarks < min_init_landmark_)
+  {
+    LOG(WARNING) << "Build init map Failed, have " << cnt_init_landmarks
+                 << " points, min is: " << min_init_landmark_;
+    return false;
+  }
+
   InsertKeyFrame();
-  LOG(INFO) << "Build Init Map Success";
+  LOG(INFO) << "Build init map success, have " << cnt_init_landmarks << " points";
   cv::destroyAllWindows();
   return true;
 }
 
-void FrontEnd::InsertKeyFrame() { }
+int FrontEnd::TriangulateNewPoints()
+{
+  auto cv_point2f_to_vec2 = [](cv::Point2f &pt) { return Eigen::Vector2d(pt.x, pt.y); };
+  std::vector<Sophus::SE3d> poses{left_camera_->getPose(), right_camera_->getPose()};
+  Sophus::SE3d current_pose_Twc =
+      (current_frame_->getRelativePose() * reference_kf_->getPose()).inverse();
+  size_t cnt_trangulat_pts = 0, cnt_previous_mappoint = 0;
+  for (size_t i = 0; i < current_frame_->features_left_.size(); i++)
+  {
+    Feature::Ptr feat_left = current_frame_->features_left_[i];
+    Feature::Ptr feat_right = current_frame_->features_right_[i];
+    MapPoint::Ptr mp = feat_left->map_point_.lock();
+    if (!current_frame_->features_left_[i]->map_point_.expired())
+    {
+      /// no need to triangulate
+      cnt_previous_mappoint++;
+      continue;
+    }
+    /// LK track failed
+    if (feat_right == nullptr)
+      continue;
+
+    std::vector<Eigen::Vector3d> points;
+    points.emplace_back(
+        left_camera_->pixel2camera(cv_point2f_to_vec2(feat_left->kp_position_.pt)));
+    points.emplace_back(
+        right_camera_->pixel2camera(cv_point2f_to_vec2(feat_right->kp_position_.pt)));
+    Eigen::Vector3d pt_camera1;
+    if (triangulation(poses, points, pt_camera1) && pt_camera1[2] > 0)
+    {
+      MapPoint::Ptr new_mappoint(new MapPoint);
+      new_mappoint->SetPosition(current_pose_Twc * pt_camera1);
+      current_frame_->features_left_[i]->map_point_ = new_mappoint;
+      current_frame_->features_right_[i]->map_point_ = new_mappoint;
+
+      map_->InsertMapPoint(new_mappoint);
+      cnt_trangulat_pts++;
+    }
+  }
+
+  LOG(INFO) << "Triangularte new points size: " << cnt_trangulat_pts;
+  return cnt_trangulat_pts;
+}
+
+bool FrontEnd::InsertKeyFrame()
+{
+  Eigen::Matrix<double, 6, 1> se3_zero = Eigen::Matrix<double, 6, 1>::Zero();
+  KeyFrame::Ptr new_keyframe = KeyFrame::CreateKF(current_frame_);
+  if (track_status_ == FrontendStatus::INITING)
+  {
+    new_keyframe->SetPose(Sophus::SE3d::exp(se3_zero));
+  }
+  else
+  {
+    /// current_frame_->pose(); T_ik * T_kw = T_iw
+    new_keyframe->SetPose(current_frame_->getRelativePose() * reference_kf_->getPose());
+    new_keyframe->last_key_frame_ = reference_kf_;
+    new_keyframe->relative_pose_to_last_KF_ = current_frame_->getRelativePose(); /// T_ik
+  }
+
+  //////////////////////////////////////////////////////////////
+  //  if(_mpBackend){
+  //    _mpBackend->InsertKeyFrame(newKF);
+  //  }
+  //////////////////////////////////////////////////////////////
+
+  reference_kf_ = new_keyframe;
+
+  current_frame_->SetRelativePose(Sophus::SE3d::exp(se3_zero));
+
+  return true;
+}
 
 void FrontEnd::SetOrbExtractor(const std::shared_ptr<ssvio::ORBextractor> &orb)
 {

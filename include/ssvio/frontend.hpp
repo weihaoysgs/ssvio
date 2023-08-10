@@ -10,6 +10,7 @@
 #include "ui/pangolin_window.hpp"
 #include "ssvio/setting.hpp"
 #include "ssvio/algorithm.hpp"
+#include "ssvio/g2otypes.hpp"
 
 namespace ssvio {
 
@@ -42,7 +43,11 @@ class FrontEnd
   bool SteroInit();
   int FindFeaturesInRight();
   bool BuidInitMap();
-  void InsertKeyFrame();
+  bool InsertKeyFrame();
+  bool Track();
+  int TriangulateNewPoints();
+  int TrackLastFrame();
+  int EstimateCurrentPose();
   bool GrabSteroImage(const cv::Mat &left_img, const cv::Mat &right_img,
                       const double timestamp);
 
@@ -67,6 +72,7 @@ class FrontEnd
   int num_features_tracking_good_;
   int num_features_tracking_bad_;
   int num_features_init_good_;
+  int min_init_landmark_;
 
   bool is_need_undistortion_ = false;
   bool show_orb_detect_result_ = false;

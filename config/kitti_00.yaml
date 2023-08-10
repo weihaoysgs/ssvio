@@ -48,5 +48,6 @@ ORBextractor.nLevels: 8
 ORBextractor.iniThFAST: 20
 ORBextractor.minThFAST: 7
 
+Min.Init.Landmark.Num: 200
 View.ORB.Extractor.Result: 1
 View.LK.Folw: 1
