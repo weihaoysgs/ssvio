@@ -37,29 +37,29 @@ bool PangolinWindowImpl::InitPangolin()
 }
 void PangolinWindowImpl::CreateDisplayLayout()
 {
-  float viewpoint_X = ssvio::Setting::Get<float>("Viewer.ViewpointX");
-  float viewpoint_Y = ssvio::Setting::Get<float>("Viewer.ViewpointY");
-  float viewpoint_Z = ssvio::Setting::Get<float>("Viewer.ViewpointZ");
-  float viewpoint_focus = ssvio::Setting::Get<float>("Viewer.Camera.Focus");
-  int view_axis_direction = ssvio::Setting::Get<float>("View.Axis.Direction");
+  viewpoint_X_ = ssvio::Setting::Get<float>("Viewer.ViewpointX");
+  viewpoint_Y_ = ssvio::Setting::Get<float>("Viewer.ViewpointY");
+  viewpoint_Z_ = ssvio::Setting::Get<float>("Viewer.ViewpointZ");
+  viewpoint_focus_ = ssvio::Setting::Get<float>("Viewer.Camera.Focus");
+  view_axis_direction_ = ssvio::Setting::Get<float>("View.Axis.Direction");
   /// define camera render object (for view / scene browsing)
   auto proj_mat_main = pangolin::ProjectionMatrix(win_width_,
                                                   win_width_,
-                                                  viewpoint_focus,
-                                                  viewpoint_focus,
+                                                  viewpoint_focus_,
+                                                  viewpoint_focus_,
                                                   win_width_ / 2.,
                                                   win_width_ / 2.,
                                                   cam_z_near_,
                                                   cam_z_far_);
 
   auto model_view_main = pangolin::ModelViewLookAt(
-      viewpoint_X,
-      viewpoint_Y,
-      viewpoint_Z,
+      viewpoint_X_,
+      viewpoint_Y_,
+      viewpoint_Z_,
       0,
       0,
       0,
-      static_cast<pangolin::AxisDirection>(view_axis_direction));
+      static_cast<pangolin::AxisDirection>(view_axis_direction_));
 
   s_cam_main_ =
       pangolin::OpenGlRenderState(std::move(proj_mat_main), std::move(model_view_main));
@@ -121,7 +121,9 @@ void PangolinWindowImpl::Render()
       0.0, 1.0, 0.0, pangolin::Attach::Pix(menu_width_));
   pangolin::Var<bool> menu_follow_loc("menu.Follow", false, true);
   pangolin::Var<bool> menu_reset_3d_view("menu.Reset 3D View", false, false);
-  pangolin::Var<bool> menu_reset_front_view("menu.Set to front View", false, false);
+  // pangolin::Var<bool> menu_reset_front_view("menu.Set to front View", false, false);
+  pangolin::Var<bool> menu_show_mappoint("menu.Show PointCloud", false, false);
+  pangolin::Var<bool> menu_show_trajectory("menu.Show Trajectory", false, false);
 
   /// display layout
   CreateDisplayLayout();
@@ -138,17 +140,17 @@ void PangolinWindowImpl::Render()
 
     if (menu_reset_3d_view)
     {
-      s_cam_main_.SetModelViewMatrix(
-          pangolin::ModelViewLookAt(0, 0, 1000, 0, 0, 0, pangolin::AxisY));
+      s_cam_main_.SetModelViewMatrix(pangolin::ModelViewLookAt(
+          viewpoint_X_,
+          viewpoint_Y_,
+          viewpoint_Z_,
+          0,
+          0,
+          0,
+          static_cast<pangolin::AxisDirection>(view_axis_direction_)));
       menu_reset_3d_view = false;
     }
-    if (menu_reset_front_view)
-    {
-      s_cam_main_.SetModelViewMatrix(
-          pangolin::ModelViewLookAt(-50, 0, 10, 50, 0, 10, pangolin::AxisZ));
-      menu_reset_front_view = false;
-      std::cout << "menu_reset_front_view\n";
-    }
+
     // Render pointcloud
 
     //    RenderClouds();

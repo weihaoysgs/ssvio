@@ -20,7 +20,7 @@ namespace ui {
 
 class PangolinWindowImpl
 {
-  public:
+ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
   PangolinWindowImpl() = default;
@@ -45,7 +45,7 @@ class PangolinWindowImpl
   void UpdateVisualOdometerState(const Sophus::SE3d &pose);
   void UpdateCloudVOPoint(const Eigen::Vector3d &point);
 
-  public:
+ public:
   std::thread render_thread_;
   std::atomic<bool> exit_flag_ = false;
   std::atomic<bool> vo_result_need_update_ = false;
@@ -56,10 +56,10 @@ class PangolinWindowImpl
 
   void Render();
 
-  private:
+ private:
   /// camera
   pangolin::OpenGlRenderState s_cam_main_;
-  /// window layout 
+  /// window layout
   int win_width_ = 1920;
   int win_height_ = 1080;
   static constexpr float cam_focus_ = 5000;
@@ -73,7 +73,11 @@ class PangolinWindowImpl
   const std::string dis_plot_name_ = "Plot";
   const std::string dis_imgs_name = "Images";
   bool following_loc_ = true; /// follow the camera
-
+  float viewpoint_X_;
+  float viewpoint_Y_;
+  float viewpoint_Z_;
+  float viewpoint_focus_;
+  int view_axis_direction_;
   pangolin::DataLog log_yaw_angle_;
   std::unique_ptr<pangolin::Plotter> plotter_yam_angle_ = nullptr;
 
