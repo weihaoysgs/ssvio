@@ -2,6 +2,7 @@
 // Created by weihao on 23-8-7.
 //
 #include "ui/pangolin_window_impl.hpp"
+#include "ssvio/setting.hpp"
 
 namespace ui {
 
@@ -17,31 +18,43 @@ bool PangolinWindowImpl::InitPangolin()
   pangolin::GetBoundWindow()->RemoveCurrent();
 
   /// create trajectory
-  no_loop_traj_ = std::make_unique<ui::TrajectoryUI>(Eigen::Vector3f(0.0, 1.0, 0.0)); /// red color
-  loop_traj_ = std::make_unique<ui::TrajectoryUI>(Eigen::Vector3f(1.0, 1.0, 51.0 / 255.0)); /// yellow
+  no_loop_traj_ =
+      std::make_unique<ui::TrajectoryUI>(Eigen::Vector3f(0.0, 1.0, 0.0)); /// red color
+  loop_traj_ = std::make_unique<ui::TrajectoryUI>(
+      Eigen::Vector3f(1.0, 1.0, 51.0 / 255.0)); /// yellow
 
   //  current_scan_.reset(new PointCloudType);
   //  current_scan_ui_.reset(new ui::UiCloud);
 
   /// data log
-  log_yaw_angle_.SetLabels(std::vector<std::string>{"yaw_angle", "pitch_angle", "roll_angle"});
+  log_yaw_angle_.SetLabels(
+      std::vector<std::string>{"yaw_angle", "pitch_angle", "roll_angle"});
 
   SetDefaultViewImage();
   return true;
 }
 void PangolinWindowImpl::CreateDisplayLayout()
 {
+  float viewpoint_X = ssvio::Setting::Get<float>("Viewer.ViewpointX");
+  float viewpoint_Y = ssvio::Setting::Get<float>("Viewer.ViewpointY");
+  float viewpoint_Z = ssvio::Setting::Get<float>("Viewer.ViewpointZ");
+  float viewpoint_focus = ssvio::Setting::Get<float>("Viewer.Camera.Focus");
+  int view_axis_direction = ssvio::Setting::Get<float>("View.Axis.Direction");
   /// define camera render object (for view / scene browsing)
   auto proj_mat_main = pangolin::ProjectionMatrix(win_width_,
                                                   win_width_,
-                                                  cam_focus_,
-                                                  cam_focus_,
+                                                  viewpoint_focus,
+                                                  viewpoint_focus,
                                                   win_width_ / 2.,
                                                   win_width_ / 2.,
                                                   cam_z_near_,
                                                   cam_z_far_);
-  auto model_view_main = pangolin::ModelViewLookAt(0, 1000, 0, 0, 0, 0, pangolin::AxisZ);
-  s_cam_main_ = pangolin::OpenGlRenderState(std::move(proj_mat_main), std::move(model_view_main));
+
+  auto model_view_main = pangolin::ModelViewLookAt(
+      viewpoint_X, viewpoint_Y, viewpoint_Z, 0, 0, 0, static_cast<pangolin::AxisDirection>(view_axis_direction));
+
+  s_cam_main_ =
+      pangolin::OpenGlRenderState(std::move(proj_mat_main), std::move(model_view_main));
 
   /// Add named OpenGL viewport to window and provide 3D Handler
   pangolin::View &d_cam3d_main = pangolin::Display(dis_3d_main_name_)
@@ -58,13 +71,14 @@ void PangolinWindowImpl::CreateDisplayLayout()
       std::make_unique<pangolin::Plotter>(&log_yaw_angle_, -10, 100, -M_PI, M_PI, 75, 2);
   plotter_yam_angle_->SetBounds(0., 1 / 3.0f, 0.0f, 0.98f, 752 / 480.);
   plotter_yam_angle_->Track("$i");
-  plotter_yam_angle_->SetBackgroundColour(pangolin::Colour(248. / 255., 248. / 255., 255. / 255.));
+  plotter_yam_angle_->SetBackgroundColour(
+      pangolin::Colour(248. / 255., 248. / 255., 255. / 255.));
 
-  pangolin::View &cv_img_left =
-      pangolin::Display(left_img_view_name_).SetBounds(1 / 3.0f, 2 / 3.0f, 0., 0.98f, 800 / 480.);
+  pangolin::View &cv_img_left = pangolin::Display(left_img_view_name_)
+                                    .SetBounds(1 / 3.0f, 2 / 3.0f, 0., 0.98f, 800 / 480.);
 
-  pangolin::View &cv_img_right =
-      pangolin::Display(right_img_view_name_).SetBounds(2 / 3.0f, 1.0f, 0.0f, 0.98f, 800 / 480.);
+  pangolin::View &cv_img_right = pangolin::Display(right_img_view_name_)
+                                     .SetBounds(2 / 3.0f, 1.0f, 0.0f, 0.98f, 800 / 480.);
 
   pangolin::View &d_plot = pangolin::Display(dis_plot_name_)
                                .SetBounds(0.0f, 1.0, 0.70, 1.0)
@@ -95,7 +109,8 @@ void PangolinWindowImpl::Render()
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   /// menu
-  pangolin::CreatePanel("menu").SetBounds(0.0, 1.0, 0.0, pangolin::Attach::Pix(menu_width_));
+  pangolin::CreatePanel("menu").SetBounds(
+      0.0, 1.0, 0.0, pangolin::Attach::Pix(menu_width_));
   pangolin::Var<bool> menu_follow_loc("menu.Follow", false, true);
   pangolin::Var<bool> menu_reset_3d_view("menu.Reset 3D View", false, false);
   pangolin::Var<bool> menu_reset_front_view("menu.Set to front View", false, false);
@@ -161,7 +176,8 @@ void PangolinWindowImpl::SetViewImage(const cv::Mat &img_left, const cv::Mat &im
 
 bool PangolinWindowImpl::RenderViewImage()
 {
-  assert(right_img_.cols > 0 && right_img_.rows > 0 && left_img_.cols > 0 && left_img_.rows > 0);
+  assert(right_img_.cols > 0 && right_img_.rows > 0 && left_img_.cols > 0 &&
+         left_img_.rows > 0);
   {
     std::unique_lock<std::mutex> lck(update_img_mutex_);
     gl_texture_img_right_->Upload(right_img_.data, GL_BGR, GL_UNSIGNED_BYTE);

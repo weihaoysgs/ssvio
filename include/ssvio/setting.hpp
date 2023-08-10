@@ -12,7 +12,6 @@
 #include "sophus/se3.hpp"
 #include "glog/logging.h"
 #include "filesystem"
-#include "ssvio/frontend.hpp"
 
 namespace ssvio {
 

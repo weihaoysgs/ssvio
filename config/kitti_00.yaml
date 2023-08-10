@@ -49,10 +49,11 @@ ORBextractor.iniThFAST: 20
 ORBextractor.minThFAST: 7
 
 Min.Init.Landmark.Num: 200
+
 View.ORB.Extractor.Result: 0
 View.LK.Folw: 0
-
 Viewer.ViewpointX: 0
-Viewer.ViewpointY: -500
-Viewer.ViewpointZ: -0.1
-Viewer.ViewpointF: 2000
+Viewer.ViewpointY: 1000 # The distance of the Y axis from the origin
+Viewer.ViewpointZ: 0
+Viewer.Camera.Focus: 5000 # The larger the focal length, the less content can be displayed on the screen, and the displayed content will appear larger
+View.Axis.Direction: 6 # AxisX: 2; AxisY: 4; AxisZ: 6
