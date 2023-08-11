@@ -46,6 +46,7 @@ int main(int argc, char **argv)
     system.RunStep(img_left, img_right, timestamp);
     // usleep(1e4);
   }
+  system.getViewUi()->SaveTrajectoryAsTUM();
   while (!system.getViewUi()->ShouldQuit())
     ;
   return 0;

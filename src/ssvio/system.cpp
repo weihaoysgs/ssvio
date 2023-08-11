@@ -12,8 +12,15 @@ System::System(const std::string &config_file_path)
   GenerateSteroCamera();
   GenerateORBextractor();
 
-  view_ui_ = std::make_shared<ui::PangolinWindow>();
   map_ = std::make_shared<Map>();
+
+  view_ui_ = std::make_shared<ui::PangolinWindow>();
+  view_ui_->SetMap(map_);
+
+  backend_ = std::make_shared<Backend>();
+  backend_->SetMap(map_);
+  backend_->SetCameras(left_camera_, right_camera_);
+  backend_->SetViewer(view_ui_);
 
   frontend_ = std::make_shared<FrontEnd>();
   frontend_->SetCamera(left_camera_, right_camera_);
@@ -21,6 +28,7 @@ System::System(const std::string &config_file_path)
   frontend_->SetOrbInitExtractor(orb_init_extractor_);
   frontend_->SetViewUI(view_ui_);
   frontend_->SetMap(map_);
+  frontend_->SetBackend(backend_);
 
   LOG_ASSERT(view_ui_->Init());
 }

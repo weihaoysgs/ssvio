@@ -6,3 +6,4 @@ thirdparty/DBoW2/build/
 kittidataset/
 bin/
 lib/
+result/*.txt

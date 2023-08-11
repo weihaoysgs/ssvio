@@ -11,6 +11,7 @@ add_library(ssvio SHARED
         setting.cpp
         orbpattern.cpp
         backend.cpp
+        loopclosing.cpp
 )
 
 target_link_libraries(ssvio glog)

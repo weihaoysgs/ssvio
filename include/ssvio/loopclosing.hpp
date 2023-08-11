@@ -7,8 +7,9 @@
 
 namespace ssvio {
 
-class loopclosing
+class LoopClosing
 {
+
 };
 
 } // namespace ssvio

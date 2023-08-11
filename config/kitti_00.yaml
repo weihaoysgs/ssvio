@@ -27,7 +27,7 @@ Camera.Base.Line: 386.1448
 Camera.NeedUndistortion: 0
 Camera.fps: 10
 
-Map.ActiveMap.Size: 7
+Map.ActiveMap.Size: 60
 
 # valid feature numbers to decide the tracking / init status
 numFeatures.initGood: 100
@@ -57,3 +57,6 @@ Viewer.ViewpointY: 1000 # The distance of the Y axis from the origin
 Viewer.ViewpointZ: 0
 Viewer.Camera.Focus: 5000 # The larger the focal length, the less content can be displayed on the screen, and the displayed content will appear larger
 View.Axis.Direction: 6 # AxisX: 2; AxisY: 4; AxisZ: 6
+
+Backend.Open: 0
+Trajectory.Save.Path: "/home/weihao/codespace/ssvio/result/nothing.txt"
