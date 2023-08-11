@@ -5,4 +5,4 @@ add_library(ui SHARED
         cloud_ui.cpp
 )
 
-target_link_libraries(ui ${pangolin_libs})
+target_link_libraries(ui ${pangolin_libs} ${g2o_libs} ${dbow_libs})

@@ -13,7 +13,7 @@ namespace ui {
 
 class PangolinWindow
 {
-  public:
+ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
   PangolinWindow();
   ~PangolinWindow();
@@ -29,7 +29,10 @@ class PangolinWindow
   void ShowVisualOdomResult(const Sophus::SE3d &pose);
   void AddCurrentFrame(const std::shared_ptr<ssvio::Frame> &frame);
   void AddShowPointCloud(const Eigen::Vector3d &point);
-  private:
+  void SetMap(const std::shared_ptr<ssvio::Map> map) { pangolin_win_impl_->SetMap(map); }
+  void SaveTrajectoryAsTUM() { pangolin_win_impl_->SaveTrajectoryTUM(); }
+
+ private:
   std::unique_ptr<ui::PangolinWindowImpl> pangolin_win_impl_;
 };
 

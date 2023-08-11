@@ -15,6 +15,8 @@
 
 #include "ui/trajectory_ui.hpp"
 #include "ui/cloud_ui.hpp"
+#include "ssvio/map.hpp"
+#include "ssvio/keyframe.hpp"
 
 namespace ui {
 
@@ -44,6 +46,10 @@ class PangolinWindowImpl
   void SetEulerAngle(float yaw, float pitch, float roll);
   void UpdateVisualOdometerState(const Sophus::SE3d &pose);
   void UpdateCloudVOPoint(const Eigen::Vector3d &point);
+  void SetMap(std::shared_ptr<ssvio::Map> map) { map_ = map; };
+  void RenderMapFrameAndMapPoint();
+  void DrawFrame(const Sophus::SE3d &pose, const float *color);
+  void SaveTrajectoryTUM();
 
  public:
   std::thread render_thread_;
@@ -57,6 +63,7 @@ class PangolinWindowImpl
   void Render();
 
  private:
+  std::shared_ptr<ssvio::Map> map_ = nullptr;
   /// camera
   pangolin::OpenGlRenderState s_cam_main_;
   /// window layout
@@ -89,8 +96,8 @@ class PangolinWindowImpl
   std::unique_ptr<pangolin::GlTexture> gl_texture_img_left_ = nullptr;
   std::unique_ptr<pangolin::GlTexture> gl_texture_img_right_ = nullptr;
 
-  std::unique_ptr<ui::TrajectoryUI> no_loop_traj_ = nullptr;
-  std::unique_ptr<ui::TrajectoryUI> loop_traj_ = nullptr;
+  std::unique_ptr<ui::TrajectoryUI> no_backend_vo_traj_ = nullptr;
+  std::unique_ptr<ui::TrajectoryUI> have_backend_kf_vo_traj_ = nullptr;
   std::unique_ptr<ui::CloudUI> camera_vo_cloud_ = nullptr;
 
   cv::Mat right_img_;

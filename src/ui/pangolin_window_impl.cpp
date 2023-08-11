@@ -3,6 +3,7 @@
 //
 #include "ui/pangolin_window_impl.hpp"
 #include "ssvio/setting.hpp"
+#include "ssvio/mappoint.hpp"
 
 namespace ui {
 
@@ -18,10 +19,10 @@ bool PangolinWindowImpl::InitPangolin()
   pangolin::GetBoundWindow()->RemoveCurrent();
 
   /// create trajectory
-  no_loop_traj_ =
-      std::make_unique<ui::TrajectoryUI>(Eigen::Vector3f(0.0, 1.0, 0.0)); /// red color
-  loop_traj_ = std::make_unique<ui::TrajectoryUI>(
-      Eigen::Vector3f(1.0, 1.0, 51.0 / 255.0)); /// yellow
+  no_backend_vo_traj_ =
+      std::make_unique<ui::TrajectoryUI>(Eigen::Vector3f(0.0, 1.0, 0.0)); ///
+  have_backend_kf_vo_traj_ =
+      std::make_unique<ui::TrajectoryUI>(Eigen::Vector3f(0, 1.0, 0)); /// yellow
 
   //  current_scan_.reset(new PointCloudType);
   //  current_scan_ui_.reset(new ui::UiCloud);
@@ -230,14 +231,53 @@ void PangolinWindowImpl::RenderAll()
 {
   RenderViewImage();
   RenderPlotterDataLog();
+
   {
     /// when render image, we render a different view which not render point
     pangolin::Display(dis_3d_main_name_).Activate(s_cam_main_);
     std::unique_lock<std::mutex> lck1(update_vo_state_);
-    no_loop_traj_->Render();
-    std::unique_lock<std::mutex> lck2(update_vo_cloud_);
-    camera_vo_cloud_->Render();
+    no_backend_vo_traj_->Render();
+    //    std::unique_lock<std::mutex> lck2(update_vo_cloud_);
+    //    camera_vo_cloud_->Render();
   }
+
+  {
+    pangolin::Display(dis_3d_main_name_).Activate(s_cam_main_);
+    RenderMapFrameAndMapPoint();
+    have_backend_kf_vo_traj_->Render();
+  }
+}
+
+void PangolinWindowImpl::RenderMapFrameAndMapPoint()
+{
+  float blue[3] = {0, 0, 1};
+  float red[3] = {1, 0, 0};
+  if (map_ == nullptr)
+    return;
+  std::unique_lock<std::mutex> lck(map_->mmutex_map_update_);
+  if (1)
+  {
+    have_backend_kf_vo_traj_->GetTrajecotryPoses().clear();
+    for (auto &kf : map_->GetAllKeyFrames())
+    {
+      have_backend_kf_vo_traj_->AddTrajectoryPose(kf.second->getPose().inverse());
+      DrawFrame(kf.second->getPose().inverse(), blue);
+    }
+  }
+
+  glPointSize(2);
+  glBegin(GL_POINTS);
+
+  if (1)
+  {
+    for (auto &mp : map_->GetAllMapPoints())
+    {
+      auto pos = mp.second->getPosition();
+      glColor3f(red[0], red[1], red[2]);
+      glVertex3d(pos[0], pos[1], pos[2]);
+    }
+  }
+  glEnd();
 }
 
 void PangolinWindowImpl::SetEulerAngle(float yaw, float pitch, float roll)
@@ -259,13 +299,99 @@ bool PangolinWindowImpl::RenderPlotterDataLog()
 void PangolinWindowImpl::UpdateVisualOdometerState(const Sophus::SE3d &pose)
 {
   std::unique_lock<std::mutex> lck(update_vo_state_);
-  no_loop_traj_->AddTrajectoryPose(pose);
+  no_backend_vo_traj_->AddTrajectoryPose(pose);
 }
 
 void PangolinWindowImpl::UpdateCloudVOPoint(const Eigen::Vector3d &point)
 {
   std::unique_lock<std::mutex> lck(update_vo_cloud_);
   camera_vo_cloud_->AddCloudPoint(point);
+}
+
+void PangolinWindowImpl::DrawFrame(const Sophus::SE3d &pose, const float *color)
+{
+  Sophus::SE3d Twc = pose;
+  const float sz = 1.3;
+  const int line_width = 2.0;
+  const float fx = 400;
+  const float fy = 400;
+  const float cx = 700;
+  const float cy = 400;
+  const float width = 1400;
+  const float height = 800;
+
+  glPushMatrix();
+
+  Sophus::Matrix4f m = Twc.matrix().template cast<float>();
+  glMultMatrixf((GLfloat *)m.data());
+
+  if (color == nullptr)
+  {
+    glColor3f(1, 0, 0);
+  }
+  else
+    glColor3f(color[0], color[1], color[2]);
+
+  glLineWidth(line_width);
+  glBegin(GL_LINES);
+  glVertex3f(0, 0, 0);
+  glVertex3f(sz * (0 - cx) / fx, sz * (0 - cy) / fy, sz);
+  glVertex3f(0, 0, 0);
+  glVertex3f(sz * (0 - cx) / fx, sz * (height - 1 - cy) / fy, sz);
+  glVertex3f(0, 0, 0);
+  glVertex3f(sz * (width - 1 - cx) / fx, sz * (height - 1 - cy) / fy, sz);
+  glVertex3f(0, 0, 0);
+  glVertex3f(sz * (width - 1 - cx) / fx, sz * (0 - cy) / fy, sz);
+
+  glVertex3f(sz * (width - 1 - cx) / fx, sz * (0 - cy) / fy, sz);
+  glVertex3f(sz * (width - 1 - cx) / fx, sz * (height - 1 - cy) / fy, sz);
+
+  glVertex3f(sz * (width - 1 - cx) / fx, sz * (height - 1 - cy) / fy, sz);
+  glVertex3f(sz * (0 - cx) / fx, sz * (height - 1 - cy) / fy, sz);
+
+  glVertex3f(sz * (0 - cx) / fx, sz * (height - 1 - cy) / fy, sz);
+  glVertex3f(sz * (0 - cx) / fx, sz * (0 - cy) / fy, sz);
+
+  glVertex3f(sz * (0 - cx) / fx, sz * (0 - cy) / fy, sz);
+  glVertex3f(sz * (width - 1 - cx) / fx, sz * (0 - cy) / fy, sz);
+
+  glEnd();
+  glPopMatrix();
+}
+
+void PangolinWindowImpl::SaveTrajectoryTUM()
+{
+  std::string save_file_path =
+      ssvio::Setting::Get<std::string>("Trajectory.Save.Path");
+  std::ofstream outfile;
+  outfile.open(save_file_path, std::ios_base::out | std::ios_base::trunc);
+  outfile << std::fixed;
+  std::map<unsigned long, ssvio::KeyFrame::Ptr> poses_map;
+
+  for (auto &kf : map_->GetAllKeyFrames())
+  {
+    unsigned long keyframe_id = kf.first;
+    ssvio::KeyFrame::Ptr keyframe = kf.second;
+    poses_map.insert(make_pair(keyframe_id, keyframe));
+  }
+
+  for (auto &kf : poses_map)
+  {
+    unsigned long keyframe_id = kf.first;
+    ssvio::KeyFrame::Ptr keyframe = kf.second;
+    double timestamp = keyframe->timestamp_;
+    Sophus::SE3d frame_pose = keyframe->getPose().inverse();
+    Eigen::Vector3d pose_t = frame_pose.translation();
+    Eigen::Matrix3d pose_R = frame_pose.rotationMatrix();
+    Eigen::Quaterniond pose_q = Eigen::Quaterniond(pose_R);
+
+    outfile << std::setprecision(6) << timestamp << " " << pose_t.transpose().x() << " "
+            << pose_t.transpose().y() << " " << pose_t.transpose().z() << " "
+            << pose_q.coeffs().transpose().x() << " " << pose_q.coeffs().transpose().y()
+            << " " << pose_q.coeffs().transpose().z() << " "
+            << pose_q.coeffs().transpose().w() << std::endl;
+  }
+  outfile.close();
 }
 
 } // namespace ui
