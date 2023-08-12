@@ -14,6 +14,10 @@ System::System(const std::string &config_file_path)
 
   map_ = std::make_shared<Map>();
 
+  loop_closing_ = std::make_shared<LoopClosing>();
+  // loop_closing_->SetORBextractor(orb_extractor_);
+  loop_closing_->SetSteroCamera(left_camera_, right_camera_);
+
   view_ui_ = std::make_shared<ui::PangolinWindow>();
   view_ui_->SetMap(map_);
 
@@ -21,6 +25,7 @@ System::System(const std::string &config_file_path)
   backend_->SetMap(map_);
   backend_->SetCameras(left_camera_, right_camera_);
   backend_->SetViewer(view_ui_);
+  backend_->SetLoopClosing(loop_closing_);
 
   frontend_ = std::make_shared<FrontEnd>();
   frontend_->SetCamera(left_camera_, right_camera_);

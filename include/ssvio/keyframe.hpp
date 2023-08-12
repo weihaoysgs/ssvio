@@ -47,7 +47,7 @@ class KeyFrame
   std::vector<std::shared_ptr<Feature>> features_left_;
 
   /// DeepLCD::DescrVector mpDescrVector;
-  cv::Mat ORBDescriptors;
+  cv::Mat ORBDescriptors_;
   cv::Mat image_left_;
 
   DBoW2::BowVector bow2_vec_;

@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 
   for (int ni = 0; ni < num_images && !system.getViewUi()->ShouldQuit(); ni++)
   {
-    LOG_IF(ERROR, ni % 100 == 99)
+    LOG_IF(INFO, ni % 100 == 99)
         << "Has processed " << ni + 1 << " frames." << std::endl;
     cv::Mat img_left = cv::imread(image_left_vec_path[ni], cv::IMREAD_GRAYSCALE);
     cv::Mat img_right = cv::imread(image_right_vec_path[ni], cv::IMREAD_GRAYSCALE);

@@ -36,10 +36,10 @@ inline void LoadKittiImagesTimestamps(const string &str_path_to_sequence,
       ss >> t;
       timestamps_vec.push_back(t);
     }
-    else
-    {
-      LOG(ERROR) << "Empty";
-    }
+    // else
+    // {
+    //   LOG(ERROR) << "Empty";
+    // }
   }
 
   string strPrefixLeft = str_path_to_sequence + "/image_0/";

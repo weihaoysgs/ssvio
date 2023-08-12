@@ -58,5 +58,14 @@ Viewer.ViewpointZ: 0
 Viewer.Camera.Focus: 5000 # The larger the focal length, the less content can be displayed on the screen, and the displayed content will appear larger
 View.Axis.Direction: 6 # AxisX: 2; AxisY: 4; AxisZ: 6
 
-Backend.Open: 0
+DBOW2.VOC.Path: "/home/weihao/codespace/simple-stero-vo/Vocabulary/ORBvoc.txt"
+
+Backend.Open: 1
 Trajectory.Save.Path: "/home/weihao/codespace/ssvio/result/nothing.txt"
+
+Loop.Closing.Open: 1
+Loop.Show.Closing.Result: 1
+Loop.Threshold.Heigher: 0.027
+Loop.Threshold.Lower: 0.02
+Loop.Closig.Keyframe.Database.Min.Size: 50
+Pyramid.Level: 8

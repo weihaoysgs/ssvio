@@ -7,6 +7,7 @@
 #include "ssvio/camera.hpp"
 #include "ssvio/feature.hpp"
 #include "ssvio/mappoint.hpp"
+#include "ssvio/loopclosing.hpp"
 
 namespace ssvio {
 Backend::Backend()
@@ -43,7 +44,7 @@ void Backend::BackendLoop()
     {
       OptimizeActiveMap();
       need_optimization_ = false; /// this will become true when next new KF is inserted
-      LOG(INFO) << "Backend Running OptimizeActiveMap";
+      // LOG(INFO) << "Backend Running OptimizeActiveMap";
     }
 
     usleep(1000);
@@ -59,7 +60,7 @@ void Backend::ProcessNewKeyFrame()
   }
 
   map_->InsertKeyFrame(current_keyframe_);
-  // _mpLoopClosing->InsertNewKeyFrame(_mpCurrentKF);
+  loop_closing_->InsertNewKeyFrame(current_keyframe_);
 }
 
 void Backend::InsertKeyFrame(std::shared_ptr<KeyFrame> KF, const bool optimization)

@@ -7,3 +7,4 @@ kittidataset/
 bin/
 lib/
 result/*.txt
+vocabulary/ORBvoc.txt

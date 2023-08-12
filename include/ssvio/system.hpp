@@ -9,6 +9,7 @@
 #include "ssvio/frontend.hpp"
 #include "ssvio/orbextractor.hpp"
 #include "ssvio/backend.hpp"
+#include "ssvio/loopclosing.hpp"
 
 namespace ssvio {
 class System
@@ -32,6 +33,7 @@ class System
   std::shared_ptr<Map> map_ = nullptr;
   std::shared_ptr<Backend> backend_ = nullptr;
   std::shared_ptr<ORBextractor> orb_extractor_ = nullptr, orb_init_extractor_ = nullptr;
+  std::shared_ptr<LoopClosing> loop_closing_ = nullptr;
 };
 } // namespace ssvio
 
