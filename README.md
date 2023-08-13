@@ -47,7 +47,7 @@ You need to pass in two parameters via the command line according to the glog, t
 --kitti_dataset_path=/home/xxx/kitti/dataset/sequences/00
 ```
 
-## System Result On [Kitti Dataset](https://www.cvlibs.net/datasets/kitti/user_register.php)
+## System Result On [Kitti Dataset](https://www.cvlibs.net/datasets/kitti/user_register.php)🏋️
 
 We verified the SLAM algorithm in this warehouse on the Kitti dataset, and compared the results with and without loop closure, the evaluate tool is [evo tool](https://github.com/MichaelGrupp/evo) ,as shown below.
 
@@ -66,3 +66,8 @@ We verified the SLAM algorithm in this warehouse on the Kitti dataset, and compa
 - [ORB-SLAM2](https://github.com/raulmur/ORB_SLAM2)
 - [SAD Book](https://github.com/gaoxiang12/slam_in_autonomous_driving)
 
+## TODO📜
+
+- [ ] Update Pangolin UI
+- [ ] Add IMU to backend opt
+- [ ] Embed [LightGlue](https://github.com/cvg/LightGlue) into the front end
