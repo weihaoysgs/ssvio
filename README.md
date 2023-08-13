@@ -53,8 +53,8 @@ We verified the SLAM algorithm in this warehouse on the Kitti dataset, and compa
 
 <table>
     <tr>
-        <td><center><img src="./result/backend_no_loop.png" width = 90%>Without Loop On Kitti 00 Seq</center></td>
-        <td><center><img src="./result/loop.png" width = 95%>With Loop On Kitti 00 Seq</center></td>
+        <td><center><img src="./result/backend_no_loop.png" width = 90%></center><center>Without Loop On Kitti 00 Seq</center></td>
+        <td><center><img src="./result/loop.png" width = 95%></center><center>With Loop On Kitti 00 Seq</center></td>
     </tr>
 </table>
 
