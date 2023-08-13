@@ -135,7 +135,9 @@ void Backend::OptimizeActiveMap()
       Feature::Ptr feat = obs.lock();
       KeyFrame::Ptr kf = feat->keyframe_.lock();
 
-      assert(active_KFs.find(kf->key_frame_id_) != active_KFs.end());
+      // assert(active_KFs.find(kf->key_frame_id_) != active_KFs.end());
+      if (active_KFs.find(kf->key_frame_id_) == active_KFs.end())
+        continue;
       if (feat->is_outlier_)
         continue;
 

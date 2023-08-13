@@ -46,6 +46,7 @@ KeyFrame::Ptr KeyFrame::CreateKF(std::shared_ptr<Frame> frame)
     if (mp)
     {
       mp->AddObservation(feat);
+      new_keyframe->features_left_[i]->map_point_ = mp;
     }
   }
 

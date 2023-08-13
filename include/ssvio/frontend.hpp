@@ -20,6 +20,7 @@ class Camera;
 class Map;
 class KeyFrame;
 class MapPoint;
+class Backend;
 
 enum class FrontendStatus
 {
@@ -38,6 +39,7 @@ class FrontEnd
   void SetViewUI(const std::shared_ptr<ui::PangolinWindow> &ui);
   void SetOrbExtractor(const std::shared_ptr<ssvio::ORBextractor> &orb);
   void SetOrbInitExtractor(const std::shared_ptr<ssvio::ORBextractor> &orb);
+  void SetBackend(const std::shared_ptr<Backend> &backend);
   void SetMap(const std::shared_ptr<Map> &map);
   int DetectFeatures();
   bool SteroInit();
@@ -63,6 +65,7 @@ class FrontEnd
   std::shared_ptr<ssvio::ORBextractor> orb_extractor_init_ = nullptr;
   std::shared_ptr<ui::PangolinWindow> view_ui_ = nullptr;
   std::shared_ptr<Map> map_ = nullptr;
+  std::shared_ptr<Backend> backend_ = nullptr;
 
   /// the pose or motion variables of the current frame
   Sophus::SE3d  relative_motion_;  /// T_{c_{i, i-1}}
@@ -77,6 +80,7 @@ class FrontEnd
   bool is_need_undistortion_ = false;
   bool show_orb_detect_result_ = false;
   bool show_lk_result_ = false;
+  bool open_backend_optimization_ = true;
 };
 } // namespace ssvio
 

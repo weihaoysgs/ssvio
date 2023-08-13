@@ -27,7 +27,7 @@ Camera.Base.Line: 386.1448
 Camera.NeedUndistortion: 0
 Camera.fps: 10
 
-Map.ActiveMap.Size: 60
+Map.ActiveMap.Size: 12
 
 # valid feature numbers to decide the tracking / init status
 numFeatures.initGood: 100

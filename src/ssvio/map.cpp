@@ -23,7 +23,6 @@ void Map::InsertKeyFrame(std::shared_ptr<KeyFrame> kf)
     std::unique_lock<std::mutex> lck(mmutex_data_);
 
     // insert keyframe
-    /// 疑惑，这里还会有id相同的关键帧吗？？？
     if (all_key_frames_.find(kf->key_frame_id_) == all_key_frames_.end())
     {
       all_key_frames_.insert(make_pair(kf->key_frame_id_, kf));
@@ -49,8 +48,8 @@ void Map::InsertKeyFrame(std::shared_ptr<KeyFrame> kf)
       // 被激活的观测会有多次
       // 比如说三个关键帧之间同时看到了一个地图点，这个地图点本身就是在第一帧的时候已经被创建了
       // 到第三个关键帧的时候，已经进入到这个判断两次来，因此观测是会很多的
+      /// 为关键帧添加激活的观测，在后端优化中会用到激活的关键帧和地图点
       mp->AddActiveObservation(feat);
-      /// 插入的时候所有的点的观测次数都为 1？
       InsertActiveMapPoint(mp);
     }
   }
@@ -90,13 +89,11 @@ void Map::InsertActiveMapPoint(MapPoint::Ptr map_point)
   }
   else
   {
-    // 前后两个关键帧拥有相同的观测到的3D点，该3D点在前面已经加入到来acitve地图点中去
+    /// 前后两个关键帧拥有相同的观测到的3D点，该3D点在前面已经加入到来acitve地图点中去
     // LOG(FATAL) << "active_map_point ID Equal";
     activate_map_points_[map_point->id_] = map_point;
   }
 }
-
-// -------------------------------------------------------------------
 
 void Map::RemoveOldActiveKeyframe()
 {
@@ -129,19 +126,19 @@ void Map::RemoveOldActiveKeyframe()
 
   // decide which kf to be removed
   const double minDisTh = 0.2;
-  KeyFrame::Ptr frameToRemove = nullptr;
+  KeyFrame::Ptr frame_to_remove = nullptr;
   if (minDis < minDisTh)
   {
-    frameToRemove = all_active_key_frames_.at(minKFId);
+    frame_to_remove = all_active_key_frames_.at(minKFId);
   }
   else
   {
-    frameToRemove = all_active_key_frames_.at(maxKFId);
+    frame_to_remove = all_active_key_frames_.at(maxKFId);
   }
 
   // remove the kf and its mappoints active observation
-  all_active_key_frames_.erase(frameToRemove->key_frame_id_);
-  for (auto &feat : frameToRemove->features_left_)
+  all_active_key_frames_.erase(frame_to_remove->key_frame_id_);
+  for (auto &feat : frame_to_remove->features_left_)
   {
     auto mp = feat->map_point_.lock();
     if (mp)
@@ -157,13 +154,13 @@ void Map::RemoveOldActiveMapPoints()
   // if the mappoint has no active observation, then remove it from the active mappoints
   std::unique_lock<std::mutex> lck(mmutex_data_);
 
-  int cntActiveLandmarkRemoved = 0;
+  int cnt_active_landmark_removed = 0;
   for (auto iter = activate_map_points_.begin(); iter != activate_map_points_.end();)
   {
     if (iter->second->active_observed_times_ == 0)
     {
       iter = activate_map_points_.erase(iter);
-      cntActiveLandmarkRemoved++;
+      cnt_active_landmark_removed++;
     }
     else
     {

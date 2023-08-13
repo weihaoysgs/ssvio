@@ -38,7 +38,7 @@ class KeyFrame
 
   /// for pose graph optimization
   Sophus::SE3d relative_pose_to_last_KF_;
-  Sophus::SE3d relative_pose_to_loop_KF_;
+  Sophus::SE3d relative_pose_to_loop_KF_; /// 当前帧真正的位姿距离回环帧的相对位姿
   std::weak_ptr<KeyFrame> loop_key_frame_;
   std::weak_ptr<KeyFrame> last_key_frame_;
 

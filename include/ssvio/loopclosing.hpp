@@ -47,7 +47,11 @@ class LoopClosing
   void LoopCorrect();
   void LoadParam();
   void GenerateORBextractor();
+  void CorrectActivateKeyframeAndMappoint();
+  void PoseGraphOptimization();
   void AddToKeyframeDatabase();
+  void SetMap(std::shared_ptr<Map> map) { map_ = map; }
+  void SetBackend(const std::shared_ptr<Backend> backend) { backend_ = backend; }
   std::vector<cv::Mat> ConvertToDescriptorVector(const cv::Mat &Descriptors);
   void SetSteroCamera(std::shared_ptr<Camera> left, std::shared_ptr<Camera> right);
   void InsertNewKeyFrame(const std::shared_ptr<KeyFrame> new_kf);
@@ -64,6 +68,8 @@ class LoopClosing
   std::shared_ptr<KeyFrame> last_closed_keyframe_ = nullptr;
   std::shared_ptr<KeyFrame> loop_keyframe_ = nullptr;
   std::unique_ptr<ORBVocabulary> dbow2_vocabulary_ = nullptr;
+  std::weak_ptr<Backend> backend_;
+  std::shared_ptr<Map> map_;
   std::list<std::shared_ptr<KeyFrame>> all_new_keyframes_;
   std::shared_ptr<ORBextractor> orb_extractor_ = nullptr;
   std::map<unsigned long, std::shared_ptr<KeyFrame>> key_frame_database_;
@@ -72,6 +78,7 @@ class LoopClosing
 
   Sophus::SE3d corrected_current_pose_;
 
+  bool need_correct_loop_pose_ = true;
   bool open_loop_closing_ = true;
   bool show_loop_closing_result_ = false;
   float loop_threshold_heigher_;

@@ -9,6 +9,7 @@
 #include "ssvio/mappoint.hpp"
 #include "ssvio/keyframe.hpp"
 #include "ssvio/map.hpp"
+#include "ssvio/backend.hpp"
 
 namespace ssvio {
 FrontEnd::FrontEnd()
@@ -20,6 +21,8 @@ FrontEnd::FrontEnd()
   show_orb_detect_result_ = Setting::Get<int>("View.ORB.Extractor.Result");
   show_lk_result_ = Setting::Get<int>("View.LK.Folw");
   min_init_landmark_ = Setting::Get<int>("Min.Init.Landmark.Num");
+  open_backend_optimization_ = Setting::Get<int>("Backend.Open");
+  LOG(INFO) << "Open Backend: " << open_backend_optimization_;
 }
 void FrontEnd::SetCamera(const Camera::Ptr &left, const Camera::Ptr &right)
 {
@@ -42,7 +45,7 @@ bool FrontEnd::GrabSteroImage(const cv::Mat &left_img, const cv::Mat &right_img,
   }
 
   {
-    /// std::unique_lock<std::mutex> lck(_mpMap->mmutexMapUpdate);
+    std::unique_lock<std::mutex> lck(map_->mmutex_map_update_);
     switch (track_status_)
     {
     case FrontendStatus::INITING:
@@ -96,9 +99,9 @@ bool FrontEnd::Track()
   {
     /// tracking bad
     track_status_ = FrontendStatus::TRACKING_BAD;
-    LOG(WARNING) << "---------------------";
-    LOG(WARNING) << "----TRACKING BAD!----";
-    LOG(WARNING) << "---------------------";
+    // LOG(WARNING) << "---------------------";
+    // LOG(WARNING) << "----TRACKING BAD!----";
+    // LOG(WARNING) << "---------------------";
   }
   else
   {
@@ -293,8 +296,8 @@ int FrontEnd::DetectFeatures()
   for (const auto &feat : current_frame_->features_left_)
   {
     cv::rectangle(mask,
-                  feat->kp_position_.pt - cv::Point2f(20, 20),
-                  feat->kp_position_.pt + cv::Point2f(20, 20),
+                  feat->kp_position_.pt - cv::Point2f(10, 10),
+                  feat->kp_position_.pt + cv::Point2f(10, 10),
                   0,
                   cv::FILLED);
   }
@@ -324,8 +327,10 @@ int FrontEnd::DetectFeatures()
   }
 
   if (track_status_ == FrontendStatus::TRACKING_BAD)
-    LOG(INFO) << "Detect New Features: " << cnt_detected
-              << " left image features size: " << current_frame_->features_left_.size();
+  {
+    // LOG(INFO) << "Detect New Features: " << cnt_detected
+    //           << " left image features size: " << current_frame_->features_left_.size();
+  }
   return cnt_detected;
 }
 
@@ -377,6 +382,7 @@ int FrontEnd::FindFeaturesInRight()
       /// only the position of keypoint is needed, so size 7 is just for creation with no meaning
       cv::KeyPoint kp(right_cam_kps[i], 7);
       Feature::Ptr feat(new Feature(kp));
+      feat->is_on_left_frame_ = false;
       current_frame_->features_right_.push_back(feat);
       num_good_points++;
     }
@@ -404,7 +410,9 @@ int FrontEnd::FindFeaturesInRight()
     cv::waitKey(1);
   }
   if (track_status_ == FrontendStatus::TRACKING_BAD)
-    LOG(INFO) << "LK Track New Features: " << num_good_points;
+  {
+    // LOG(INFO) << "LK Track New Features: " << num_good_points;
+  }    
   return num_good_points;
 }
 
@@ -516,7 +524,7 @@ int FrontEnd::TriangulateNewPoints()
     }
   }
 
-  LOG(INFO) << "Triangularte new points size: " << cnt_trangulat_pts;
+  // LOG(INFO) << "Triangularte new points size: " << cnt_trangulat_pts;
   return cnt_trangulat_pts;
 }
 
@@ -537,9 +545,10 @@ bool FrontEnd::InsertKeyFrame()
   }
 
   //////////////////////////////////////////////////////////////
-  //  if(_mpBackend){
-  //    _mpBackend->InsertKeyFrame(newKF);
-  //  }
+  if (backend_)
+  {
+    backend_->InsertKeyFrame(new_keyframe, open_backend_optimization_);
+  }
   //////////////////////////////////////////////////////////////
 
   reference_kf_ = new_keyframe;
@@ -571,6 +580,12 @@ void FrontEnd::SetMap(const shared_ptr<Map> &map)
 {
   assert(map != nullptr);
   map_ = map;
+}
+
+void FrontEnd::SetBackend(const shared_ptr<Backend> &backend)
+{
+  assert(backend != nullptr);
+  backend_ = backend;
 }
 
 } // namespace ssvio
