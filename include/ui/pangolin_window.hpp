@@ -18,9 +18,6 @@ class PangolinWindow
   PangolinWindow();
   ~PangolinWindow();
 
-  /// @brief 初始化窗口，后台启动render线程。
-  /// @note 与opengl/pangolin无关的初始化，尽量放到此函数体中;
-  ///       opengl/pangolin相关的内容，尽量放到PangolinWindowImpl::Init中。
   bool Init();
   bool ShouldQuit() const;
   void Quit() const;

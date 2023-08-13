@@ -45,7 +45,6 @@ class MapPoint
 
  private:
   std::mutex update_get_mutex_;
-  /// 或许可以不用 list 而是 unordered_set
   std::list<std::weak_ptr<Feature>> active_observations_;
   std::list<std::weak_ptr<Feature>> observations_;
   Eigen::Vector3d position_ = Eigen::Vector3d::Zero();

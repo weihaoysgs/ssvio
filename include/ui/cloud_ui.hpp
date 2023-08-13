@@ -15,7 +15,7 @@ namespace ui {
 class CloudUI
 {
  public:
-  /// 使用哪种颜色渲染本点云
+  
   enum UseColor
   {
     SELF_DEFINE_COLOR, /// self define color

@@ -25,12 +25,9 @@ class Feature
   Feature(std::shared_ptr<KeyFrame> kf, const cv::KeyPoint &kp);
 
  public:
-  /// 该特征点所在的关键帧
   std::weak_ptr<KeyFrame> keyframe_;
   cv::KeyPoint kp_position_;
-  /// 该特征点提取金字塔之后的点的集合
   std::vector<cv::KeyPoint> pyramid_keypoints_;
-  /// 对应的地图3D点
   std::weak_ptr<MapPoint> map_point_;
 
   bool is_on_left_frame_ = true; // true: on left frame; false: on right frame;

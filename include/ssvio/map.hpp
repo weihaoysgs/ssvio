@@ -27,18 +27,18 @@ class Map
   Map();
 
   /** insert new keyframe to the map and the active keyframes
-     * insert new KF's mappoints to active mappoints
-     * remove the old active KFs and old active mappoints
-     */
+    * insert new KF's mappoints to active mappoints
+    * remove the old active KFs and old active mappoints
+    */
   void InsertKeyFrame(std::shared_ptr<KeyFrame> kf);
 
-  // remove mappoints which are not observed by any active kf
+  /// remove mappoints which are not observed by any active kf
   void RemoveOldActiveMapPoints();
 
-  // remove old keyframes from the active keyframes
+  /// remove old keyframes from the active keyframes
   void RemoveOldActiveKeyframe();
 
-  // insert new mappoint to the map and the active map
+  /// insert new mappoint to the map and the active map
   void InsertMapPoint(std::shared_ptr<MapPoint> map_point);
 
   void InsertActiveMapPoint(std::shared_ptr<MapPoint> map_point);
@@ -62,8 +62,8 @@ class Map
   KeyFramesType GetActiveKeyFrames();
 
  public:
-  // avoid the conflict among different threads' operations on
-  // keyframe's poses and mappoints' positions.
+  /// avoid the conflict among different threads' operations on
+  /// keyframe's poses and mappoints' positions.
   std::mutex mmutex_map_update_;
 
  private:

@@ -40,8 +40,9 @@ class Frame
   std::vector<std::shared_ptr<Feature>> features_right_;
 
  private:
-  Sophus::SE3d pose_; /// just for viewer
-  /// for tracking 存储的是相对与上一个关键帧的位姿 T_{c_i {i-t}} 这里我们把 i-t时刻当作关键帧, i为当前时刻
+  Sophus::SE3d pose_; 
+  /// for tracking, What is stored is the pose relative to the previous keyframe T_{c_i {i-t}} 
+  /// Here we regard the moment i-t as a key frame, and i is the current moment
   Sophus::SE3d relative_pose_to_kf_;
 
   std::mutex update_pose_;
