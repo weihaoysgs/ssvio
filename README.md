@@ -4,6 +4,8 @@
 
 [English](README.md) | [简体中文](doc/Chinese.md)
 
+<iframe src="//player.bilibili.com/player.html?aid=702287758&bvid=BV1em4y1n72a&cid=1235476662&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+
 </div>
 
 A lightweight setero visual-inertial SLAM system implementation, including complete closed-loop detection, front-end tracking, back-end optimization, visualization and other parts. This warehouse is more friendly to students who are new to SLAM. At the same time, the performance of this system is evaluated on the Kitti dataset. Although there is still a certain distance from the SOTA method, it is basically a usable visual odometry system.
