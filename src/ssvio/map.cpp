@@ -43,12 +43,6 @@ void Map::InsertKeyFrame(std::shared_ptr<KeyFrame> kf)
     auto mp = feat->map_point_.lock();
     if (mp)
     {
-      // 这里是不是多加了一次观测，因为在创建关键帧的时候就为每个点已经加了观测
-      // 不是，这里和创建关键帧那里的不一样，这个是添加激活点的观测
-      // 被激活的观测会有多次
-      // 比如说三个关键帧之间同时看到了一个地图点，这个地图点本身就是在第一帧的时候已经被创建了
-      // 到第三个关键帧的时候，已经进入到这个判断两次来，因此观测是会很多的
-      /// 为关键帧添加激活的观测，在后端优化中会用到激活的关键帧和地图点
       mp->AddActiveObservation(feat);
       InsertActiveMapPoint(mp);
     }
@@ -62,7 +56,6 @@ void Map::InsertKeyFrame(std::shared_ptr<KeyFrame> kf)
   }
 }
 
-/// 这里是将所有的三角化后的点都插入到地图中去
 void Map::InsertMapPoint(MapPoint::Ptr map_point)
 {
   std::unique_lock<std::mutex> lck(mmutex_data_);
@@ -78,7 +71,6 @@ void Map::InsertMapPoint(MapPoint::Ptr map_point)
   }
 }
 
-/// 每当有新的关键帧插入的时候都会将其关联的3d点插入到地图的 ActiveMapPoint
 void Map::InsertActiveMapPoint(MapPoint::Ptr map_point)
 {
   std::unique_lock<std::mutex> lck(mmutex_data_);
@@ -89,7 +81,6 @@ void Map::InsertActiveMapPoint(MapPoint::Ptr map_point)
   }
   else
   {
-    /// 前后两个关键帧拥有相同的观测到的3D点，该3D点在前面已经加入到来acitve地图点中去
     // LOG(FATAL) << "active_map_point ID Equal";
     activate_map_points_[map_point->id_] = map_point;
   }
@@ -143,7 +134,6 @@ void Map::RemoveOldActiveKeyframe()
     auto mp = feat->map_point_.lock();
     if (mp)
     {
-      // 如果这个特征点是已经被三角化过的，则要删除该3d点对这一帧图像上的观测
       mp->RemoveActiveObservation(feat);
     }
   }
@@ -169,7 +159,6 @@ void Map::RemoveOldActiveMapPoints()
   }
 }
 
-/// 在回环模块中会用到，其他地方没用到
 void Map::RemoveMapPoint(std::shared_ptr<MapPoint> mappoint)
 {
   std::unique_lock<std::mutex> lck(mmutex_data_);
@@ -183,14 +172,12 @@ void Map::RemoveMapPoint(std::shared_ptr<MapPoint> mappoint)
   activate_map_points_.erase(mpId);
 }
 
-// 在前端和后端进行位姿估计之后都会添加外点到地图中去，当然记录的只是地图点的id
 void Map::AddOutlierMapPoint(unsigned long mpId)
 {
   std::unique_lock<std::mutex> lck(_mmutexOutlierMapPoint);
   list_outlier_map_points_.push_back(mpId);
 }
 
-// 在后端优化后会移除所有的外点
 void Map::RemoveAllOutlierMapPoints()
 {
   std::unique_lock<std::mutex> lck(mmutex_data_);
