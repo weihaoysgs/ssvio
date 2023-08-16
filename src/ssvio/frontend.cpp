@@ -66,7 +66,7 @@ bool FrontEnd::GrabSteroImage(const cv::Mat &left_img, const cv::Mat &right_img,
       }
     }
   }
-  /// 这里的显示是只用于在图像上画二维点，并通过OpenCV进行显示而已，不涉及其他
+
   if (view_ui_)
   {
     view_ui_->AddCurrentFrame(current_frame_);
@@ -82,8 +82,9 @@ bool FrontEnd::Track()
   if (last_frame_)
   {
     /// T{i k} = T{i-1_i-2} * T{i-1_k}
-    /// 更广泛点的说法是 relative_motion_ 表示的是相邻两个帧之间的运动，
-    /// 我们有了上一帧的位姿估计则用上一帧的姿态根据恒速模型乘以该运动则表示对当前帧的位姿的初始估计
+    /// A more general point of view is that relative_motion_ represents the motion between two adjacent frames,
+    /// We have the pose estimation of the previous frame, then use the pose of the previous frame to multiply 
+    /// the motion according to the constant velocity model to represent the initial estimate of the pose of the current frame
     current_frame_->SetRelativePose(relative_motion_ * last_frame_->getRelativePose());
   }
 
@@ -345,7 +346,8 @@ int FrontEnd::FindFeaturesInRight()
     auto pt_in_map = feat->map_point_.lock();
     if (pt_in_map)
     {
-      /// 如果是已经被三角化后的点,则通过第一个相机的位姿和相机之间的外参投影到第二个相机的平面上去
+      /// If it is a point that has been triangulated, it is projected onto the plane of the second
+      /// camera through the pose of the first camera and the external parameters between the camera
       Eigen::Vector2d p = right_camera_->world2pixel(pt_in_map->getPosition(),
                                                      current_frame_->getRelativePose() *
                                                          reference_kf_->getPose());

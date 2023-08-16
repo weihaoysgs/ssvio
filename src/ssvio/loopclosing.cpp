@@ -118,12 +118,12 @@ bool LoopClosing::MatchFeatures()
   {
     if (mt.distance <= std::max(2 * min_distance, 30.0))
     {
-      /// class_id 表示是第几个特征点，去掉了金字塔,同一个金字塔层级的 class_id 是一样的
+      /// class_id indicates the number of feature points, the pyramid is removed, and the class_id of the same pyramid level is the same
       int loop_feature_id = loop_keyframe_->pyramid_key_points_[mt.queryIdx].class_id;
       int current_feature_id =
           current_keyframe_->pyramid_key_points_[mt.trainIdx].class_id;
 
-      // the matches of keypoints belonging to the same feature pair shouldn't be inserted into the valid matches twice
+      /// the matches of keypoints belonging to the same feature pair shouldn't be inserted into the valid matches twice
       if (set_valid_feature_matches_.find({current_feature_id, loop_feature_id}) !=
           set_valid_feature_matches_.end())
       {
@@ -389,11 +389,9 @@ void LoopClosing::CorrectActivateKeyframeAndMappoint()
     if (kf_id == current_keyframe_->key_frame_id_)
       continue;
     /// T_{{k-n}_k} = T_{{k-n}_w} * T_{w_k}
-    /// 得到两个关键帧之间的相对位姿，相对位姿是不变的
     /// Get the relative pose between two keyframes, the relative pose is constant
     Sophus::SE3d T_kn_k = kf.second->getPose() * current_keyframe_->getPose().inverse();
     /// T_a = T_{{k-n}_k} * T_{kt_w}
-    /// 根据当真帧的正确位姿推算出该关键帧应该所处的正确位姿
     /// Calculate the correct pose of the key frame based on the correct pose of the current frame
     Sophus::SE3d T_kn_true = T_kn_k * corrected_current_pose_;
     correct_activate_pose.insert({kf_id, T_kn_true});
@@ -590,7 +588,7 @@ void LoopClosing::ProcessNewKeyframe()
   pyramid_points.reserve(pyramid_level_num_ * current_keyframe_->features_left_.size());
   for (size_t i = 0; i < current_keyframe_->features_left_.size(); i++)
   {
-    /// class id 标记的是序号
+    /// The class id marks the serial number
     current_keyframe_->features_left_[i]->kp_position_.class_id = i;
     for (int level = 0; level < pyramid_level_num_; level++)
     {
