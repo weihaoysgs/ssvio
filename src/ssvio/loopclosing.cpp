@@ -177,16 +177,16 @@ bool LoopClosing::ComputeCorrectPose()
   if (show_loop_closing_result_)
   {
     //  show the match result
-    cv::Mat img_goodmatch;
-    cv::drawMatches(current_keyframe_->image_left_,
-                    current_keyframe_->GetKeyPoints(),
-                    loop_keyframe_->image_left_,
-                    loop_keyframe_->GetKeyPoints(),
-                    matches_with_mappoint,
-                    img_goodmatch);
-    cv::resize(img_goodmatch, img_goodmatch, cv::Size(), 0.5, 0.5);
-    cv::imshow("valid matches with mappoints", img_goodmatch);
-    cv::waitKey(1);
+    // cv::Mat img_goodmatch;
+    // cv::drawMatches(current_keyframe_->image_left_,
+    //                 current_keyframe_->GetKeyPoints(),
+    //                 loop_keyframe_->image_left_,
+    //                 loop_keyframe_->GetKeyPoints(),
+    //                 matches_with_mappoint,
+    //                 img_goodmatch);
+    // cv::resize(img_goodmatch, img_goodmatch, cv::Size(), 0.5, 0.5);
+    // cv::imshow("valid matches with mappoints", img_goodmatch);
+    // cv::waitKey(1);
   }
 
   if (loop_point3f.size() < 10)
@@ -222,7 +222,7 @@ bool LoopClosing::ComputeCorrectPose()
 
   double error =
       (current_keyframe_->getPose() * corrected_current_pose_.inverse()).log().norm();
-  if (error > 1  && error < 50)
+  if (error > 1  && error < 15)
   {
     LOG(INFO) << GREEN << "Loop Error: " << error << TAIL;
     need_correct_loop_pose_ = true;
