@@ -99,15 +99,15 @@ bool FrontEnd::Track()
   {
     /// tracking bad
     track_status_ = FrontendStatus::TRACKING_BAD;
-    // LOG(WARNING) << "---------------------";
-    // LOG(WARNING) << "----TRACKING BAD!----";
+    LOG(WARNING) << "--inline_pts:-- " << inline_pts;
+    LOG(WARNING) << "----TRACKING BAD!----";
     // LOG(WARNING) << "---------------------";
   }
   else
   {
     /// lost
     track_status_ = FrontendStatus::LOST;
-    LOG(WARNING) << "---------------------";
+    LOG(WARNING) << "--inline_pts:-- " << inline_pts;
     LOG(WARNING) << "---Tracking LOST!----";
     LOG(WARNING) << "---------------------";
   }

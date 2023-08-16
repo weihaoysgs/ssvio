@@ -32,12 +32,15 @@ void Backend::BackendLoop()
 
     /// if the loopclosing thread asks backend to pause
     /// this will make sure that the backend will pause in this position, having processed all new KFs in the list
-    while (_request_pause_.load())
+    if (_request_pause_.load())
     {
       _has_paused_.store(true);
-      usleep(1000);
+      continue;
     }
-    _has_paused_.store(false);
+    else
+    {
+      _has_paused_.store(false);
+    }
 
     /// optimize the active KFs and mappoints
     if (!CheckNewKeyFrames() && need_optimization_)
