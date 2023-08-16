@@ -21,14 +21,14 @@ KeyFrame::KeyFrame(std::shared_ptr<Frame> frame)
   features_left_ = frame->features_left_;
   // mvpFeaturesRight = frame->mvpFeaturesRight; // undesired
 
-  for (size_t i = 0, N = frame->features_left_.size(); i < N; i++)
-  {
-    auto mp = frame->features_left_[i]->map_point_.lock();
-    if (mp != nullptr)
-    {
-      features_left_[i]->map_point_ = mp;
-    }
-  }
+  // for (size_t i = 0, N = frame->features_left_.size(); i < N; i++)
+  // {
+  //   auto mp = frame->features_left_[i]->map_point_.lock();
+  //   if (mp != nullptr)
+  //   {
+  //     features_left_[i]->map_point_ = mp;
+  //   }
+  // }
 }
 
 KeyFrame::Ptr KeyFrame::CreateKF(std::shared_ptr<Frame> frame)

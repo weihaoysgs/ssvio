@@ -11,7 +11,7 @@
 #include "ssvio/setting.hpp"
 #include "ssvio/algorithm.hpp"
 #include "ssvio/g2otypes.hpp"
-
+#include "mutex"
 namespace ssvio {
 
 class Frame;
@@ -53,6 +53,17 @@ class FrontEnd
   bool GrabSteroImage(const cv::Mat &left_img, const cv::Mat &right_img,
                       const double timestamp);
 
+ public:
+  std::mutex getset_reference_kp_numtex_;
+  std::shared_ptr<KeyFrame> getReferenceKF()
+  {
+    std::unique_lock<std::mutex> lck(getset_reference_kp_numtex_);
+    return reference_kf_;
+  }
+  
+  std::shared_ptr<Frame> getCurrentFrame() { return current_frame_; }
+  std::shared_ptr<Frame> getLastFrame() { return last_frame_; }
+  
  private:
   FrontendStatus track_status_ = FrontendStatus::INITING;
 

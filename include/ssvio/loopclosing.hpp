@@ -28,6 +28,7 @@ class Map;
 class Camera;
 class ORBextractor;
 class Backend;
+class FrontEnd;
 
 class LoopClosing
 {
@@ -52,6 +53,7 @@ class LoopClosing
   void AddToKeyframeDatabase();
   void SetMap(std::shared_ptr<Map> map) { map_ = map; }
   void SetBackend(const std::shared_ptr<Backend> backend) { backend_ = backend; }
+  void SetFrontend(const std::shared_ptr<FrontEnd> frontend) { frontend_ = frontend; }
   std::vector<cv::Mat> ConvertToDescriptorVector(const cv::Mat &Descriptors);
   void SetSteroCamera(std::shared_ptr<Camera> left, std::shared_ptr<Camera> right);
   void InsertNewKeyFrame(const std::shared_ptr<KeyFrame> new_kf);
@@ -69,6 +71,7 @@ class LoopClosing
   std::shared_ptr<KeyFrame> loop_keyframe_ = nullptr;
   std::unique_ptr<ORBVocabulary> dbow2_vocabulary_ = nullptr;
   std::weak_ptr<Backend> backend_;
+  std::shared_ptr<FrontEnd> frontend_ = nullptr;
   std::shared_ptr<Map> map_;
   std::list<std::shared_ptr<KeyFrame>> all_new_keyframes_;
   std::shared_ptr<ORBextractor> orb_extractor_ = nullptr;

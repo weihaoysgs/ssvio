@@ -28,7 +28,6 @@ System::System(const std::string &config_file_path)
   backend_->SetViewer(view_ui_);
   backend_->SetLoopClosing(loop_closing_);
 
-  loop_closing_->SetBackend(backend_);
 
   frontend_ = std::make_shared<FrontEnd>();
   frontend_->SetCamera(left_camera_, right_camera_);
@@ -37,6 +36,9 @@ System::System(const std::string &config_file_path)
   frontend_->SetViewUI(view_ui_);
   frontend_->SetMap(map_);
   frontend_->SetBackend(backend_);
+
+  loop_closing_->SetBackend(backend_);
+  loop_closing_->SetFrontend(frontend_);
 
   LOG_ASSERT(view_ui_->Init());
 }

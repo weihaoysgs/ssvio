@@ -25,8 +25,8 @@ void Map::InsertKeyFrame(std::shared_ptr<KeyFrame> kf)
     // insert keyframe
     if (all_key_frames_.find(kf->key_frame_id_) == all_key_frames_.end())
     {
-      all_key_frames_.insert(make_pair(kf->key_frame_id_, kf));
-      all_active_key_frames_.insert(make_pair(kf->key_frame_id_, kf));
+      all_key_frames_.insert(std::make_pair(kf->key_frame_id_, kf));
+      all_active_key_frames_.insert(std::make_pair(kf->key_frame_id_, kf));
     }
     else
     {

@@ -139,6 +139,7 @@ int FrontEnd::TrackLastFrame()
     kps_last.emplace_back(feat->kp_position_.pt);
     if (mappoint)
     {
+      std::unique_lock<std::mutex> lck(getset_reference_kp_numtex_);
       Eigen::Vector2d p = left_camera_->world2pixel(mappoint->getPosition(),
                                                     current_frame_->getRelativePose() *
                                                         reference_kf_->getPose());
@@ -195,9 +196,12 @@ int FrontEnd::EstimateCurrentPose()
   VertexPose *vertex_pose = new VertexPose();
   vertex_pose->setId(0);
   /// T{i_k} * T{k_w} = T{i_w}
-  vertex_pose->setEstimate(current_frame_->getRelativePose() * reference_kf_->getPose());
+  {
+    std::unique_lock<std::mutex> lck(getset_reference_kp_numtex_);
+    vertex_pose->setEstimate(current_frame_->getRelativePose() * reference_kf_->getPose());
+  }
   optimizer.addVertex(vertex_pose);
-
+ 
   /// edges
   int index = 1;
   std::vector<EdgeProjectionPoseOnly *> edges;
@@ -267,13 +271,17 @@ int FrontEnd::EstimateCurrentPose()
   /// set pose
   current_frame_->SetPose(vertex_pose->estimate());
   /// T{i_k} = T{i_w} * T{k_w}.inverse()
-  current_frame_->SetRelativePose(vertex_pose->estimate() *
+  {
+    std::unique_lock<std::mutex> lck(getset_reference_kp_numtex_);
+  
+    current_frame_->SetRelativePose(vertex_pose->estimate() *
                                   reference_kf_->getPose().inverse());
-
+  }
   for (auto &feat : features)
   {
     if (feat->is_outlier_)
     {
+      std::unique_lock<std::mutex> lck(getset_reference_kp_numtex_);
       MapPoint::Ptr mp = feat->map_point_.lock();
       if (mp && current_frame_->frame_id_ - reference_kf_->frame_id_ <= 2)
       {
@@ -345,7 +353,8 @@ int FrontEnd::FindFeaturesInRight()
     left_cam_kps.push_back(feat->kp_position_.pt);
     auto pt_in_map = feat->map_point_.lock();
     if (pt_in_map)
-    {
+    { 
+      std::unique_lock<std::mutex> lck(getset_reference_kp_numtex_);
       /// If it is a point that has been triangulated, it is projected onto the plane of the second
       /// camera through the pose of the first camera and the external parameters between the camera
       Eigen::Vector2d p = right_camera_->world2pixel(pt_in_map->getPosition(),
@@ -488,8 +497,12 @@ int FrontEnd::TriangulateNewPoints()
 {
   auto cv_point2f_to_vec2 = [](cv::Point2f &pt) { return Eigen::Vector2d(pt.x, pt.y); };
   std::vector<Sophus::SE3d> poses{left_camera_->getPose(), right_camera_->getPose()};
-  Sophus::SE3d current_pose_Twc =
-      (current_frame_->getRelativePose() * reference_kf_->getPose()).inverse();
+  Sophus::SE3d current_pose_Twc;
+  {
+    std::unique_lock<std::mutex> lck(getset_reference_kp_numtex_);
+    current_pose_Twc = (current_frame_->getRelativePose() * reference_kf_->getPose()).inverse();
+  }
+  
   size_t cnt_trangulat_pts = 0, cnt_previous_mappoint = 0;
   for (size_t i = 0; i < current_frame_->features_left_.size(); i++)
   {
@@ -526,7 +539,7 @@ int FrontEnd::TriangulateNewPoints()
     }
   }
 
-  // LOG(INFO) << "Triangularte new points size: " << cnt_trangulat_pts;
+  //LOG(INFO) << "Triangularte new points size: " << cnt_trangulat_pts;
   return cnt_trangulat_pts;
 }
 
@@ -540,6 +553,7 @@ bool FrontEnd::InsertKeyFrame()
   }
   else
   {
+    std::unique_lock<std::mutex> lck(getset_reference_kp_numtex_);
     /// current_frame_->pose(); T_ik * T_kw = T_iw
     new_keyframe->SetPose(current_frame_->getRelativePose() * reference_kf_->getPose());
     new_keyframe->last_key_frame_ = reference_kf_;
@@ -552,9 +566,10 @@ bool FrontEnd::InsertKeyFrame()
     backend_->InsertKeyFrame(new_keyframe, open_backend_optimization_);
   }
   //////////////////////////////////////////////////////////////
-
-  reference_kf_ = new_keyframe;
-
+  {
+    std::unique_lock<std::mutex> lck(getset_reference_kp_numtex_);
+    reference_kf_ = new_keyframe;
+  }
   current_frame_->SetRelativePose(Sophus::SE3d::exp(se3_zero));
 
   return true;

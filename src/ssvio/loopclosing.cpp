@@ -11,6 +11,7 @@
 #include "ssvio/camera.hpp"
 #include "ssvio/g2otypes.hpp"
 #include "ssvio/backend.hpp"
+#include "ssvio/frontend.hpp"
 
 namespace ssvio {
 
@@ -365,11 +366,11 @@ void LoopClosing::LoopCorrect()
   }
 
   CorrectActivateKeyframeAndMappoint();
-
+  LOG(INFO) << GREEN << "Start Loop Cloeing Process Has Finished" << TAIL;
   PoseGraphOptimization();
 
   backend->Resume();
-  LOG(INFO) << GREEN << "Loop Cloeing Process Has Finished" << TAIL;
+  LOG(INFO) << GREEN << "End Loop Cloeing Process Has Finished" << TAIL;
   LOG(INFO) << "-------------------------------------------";
   return;
 }
@@ -564,9 +565,26 @@ void LoopClosing::PoseGraphOptimization()
       mp->SetPosition(T_optimized.inverse() * posCamera);
     }
 
+    unsigned long frontend_ref_kf_id = frontend_->getReferenceKF()->key_frame_id_;
     // set the KFs' optimized poses
     for (auto &v : vertices_kf)
     {
+      if (v.first == frontend_ref_kf_id)
+      {
+      //   Frame::Ptr front_curr_frame = frontend_->getCurrentFrame();
+      //   Frame::Ptr front_last_frame = frontend_->getLastFrame();
+
+      //   Sophus::SE3d ref_kf_new_pose = v.second->estimate();
+      //   Sophus::SE3d ref_kf_old_pose = frontend_->getReferenceKF()->getPose();
+      //   Sophus::SE3d T_k_old_new = ref_kf_old_pose.inverse() * ref_kf_new_pose;
+
+      //   Sophus::SE3d new_current_frame_rel_pose = front_curr_frame->getRelativePose() * T_k_old_new;
+      //   front_curr_frame->SetRelativePose(new_current_frame_rel_pose);
+      //   Sophus::SE3d new_last_frame_rel_pose = front_last_frame->getRelativePose() * T_k_old_new;
+      //   front_last_frame->SetRelativePose(new_last_frame_rel_pose);
+      //   LOG(INFO) << YELLOW << "Find FRAME, Pose error: " <<  T_k_old_new.log().norm() << TAIL;
+        continue;
+      }
       allKFs.at(v.first)->SetPose(v.second->estimate());
     }
 
