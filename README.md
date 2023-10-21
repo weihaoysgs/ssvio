@@ -1,4 +1,4 @@
-# Simple Stero Visual Inertial SLAM(SSVIO)
+# Simple Stereo Visual Inertial SLAM(SSVIO)
 
 <div align="center">
 
